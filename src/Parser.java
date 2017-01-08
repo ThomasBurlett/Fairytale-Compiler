@@ -44,35 +44,37 @@ public class Parser
 
     static public void main (String args[])
     {
-        Parser parser = new Parser();
+        Parser parser = new Parser();		// Create new parser
       //  scanner = new Scanner( args[0]);
-        scanner = new Scanner( "test");
-        codeFactory = new CodeFactory();
-        symbolTable = new SymbolTable();
-        parser.parse();
+        scanner = new Scanner( "test");		// Scan in file (get current and next line)
+        codeFactory = new CodeFactory();	// Create new Code Factory
+        symbolTable = new SymbolTable();	// Create new Symbol Table
+        parser.parse();						// Parse data 
     }
     
     public void parse()
     {
-        currentToken = scanner.findNextToken();
+        currentToken = scanner.findNextToken();	// Get next token of currentLine 
         systemGoal();
     }
     
     private void systemGoal()
     {
-        program();
+        program();								// Begin program (begin the CFG)
         codeFactory.generateData();
     }
     
+    // <program> := BEGIN <statement list> END
     private void program()
     {
-        match( Token.BEGIN );
-        codeFactory.generateStart();
+        match( Token.BEGIN );					// Match BEGIN to start //TODO Change beginning and end syntax
+        codeFactory.generateStart();			// Start Program
         statementList();
-        match( Token.END );
-        codeFactory.generateExit();
+        match( Token.END );						// Match END to end
+        codeFactory.generateExit();				// Exit Program
     }
     
+    // <statement list> := <statement> { <statement> }
     private void statementList()
     {
         while ( currentToken.getType() == Token.ID || currentToken.getType() == Token.READ || 
@@ -82,6 +84,12 @@ public class Parser
         }
     }
     
+    // <statement> -> <ident> := <expression> #Assign ;
+    // <statement> -> <ident> := <string> 	  #Assign ;
+    // <statement> -> READ ( <id list> ) ;
+    // <statement> -> WRITE ( <expr list> ) ;
+    // <statement> -> WRITE ( <string list> ) ;
+    // <statement> -> <ident> ;
     private void statement()
     {
         Expression lValue;
@@ -92,7 +100,12 @@ public class Parser
             case Token.ID:
             {
                 lValue = identifier();
+                //TODO: Need it to also work for <statement> -> <ident> ;
+                
                 match( Token.ASSIGNOP );
+                
+                //TODO: Currently works for 	 <statement> -> <ident> := <expression> #Assign ;
+                //TODO: Need it to also work for <statement> -> <ident> := <string> 	#Assign ;
                 expr = expression();
                 codeFactory.generateAssignment( lValue, expr );
                 match( Token.SEMICOLON );
@@ -100,6 +113,7 @@ public class Parser
             }
             case Token.READ :
             {
+            	//TODO: Currently works for  <statement> -> READ ( <id list> ) ;
                 match( Token.READ );
                 match( Token.LPAREN );
                 idList();
@@ -111,6 +125,9 @@ public class Parser
             {
                 match( Token.WRITE );
                 match( Token.LPAREN );
+                
+                //TODO Currently works for 	 	 <statement> -> WRITE ( <expr list> ) ;
+                //TODO: Need it to also work for <statement> -> WRITE ( <string list> ) ;
                 expressionList();
                 match( Token.RPAREN );
                 match( Token.SEMICOLON );
@@ -120,12 +137,13 @@ public class Parser
         }
     }
     
+    // <id list> -> <ident> #ReadId {, <ident> #ReadId }
     private void idList()
     {
         Expression idExpr;
         idExpr = identifier();
         codeFactory.generateRead(idExpr);
-        while ( currentToken.getType() == Token.COMMA )
+        while ( currentToken.getType() == Token.COMMA )	// {, <ident> #ReadId }
         {
             match(Token.COMMA);
             idExpr = identifier();
@@ -133,12 +151,13 @@ public class Parser
         }
     }
     
+    // <expr list> -> <expression> #WriteExpr {, <expression> #WriteExpr}
     private void expressionList()
     {
         Expression expr;
         expr = expression();
         codeFactory.generateWrite(expr);
-        while ( currentToken.getType() == Token.COMMA )
+        while ( currentToken.getType() == Token.COMMA ) // {, <expression> #WriteExpr}
         {
             match( Token.COMMA );
             expr = expression();
@@ -146,6 +165,11 @@ public class Parser
         }
     }
     
+    //TODO Add <string list> here
+    // <string list> -> <string> #WriteString {, <string> #WriteString}
+    
+    
+    // <expression>	-> <primary> {<add op> <primary> #GenInfix}
     private Expression expression()
     {
         Expression result;
@@ -154,7 +178,7 @@ public class Parser
         Operation op;
         
         result = primary();
-        while ( currentToken.getType() == Token.PLUS || currentToken.getType() == Token.MINUS )
+        while ( currentToken.getType() == Token.PLUS || currentToken.getType() == Token.MINUS ) // {<add op> <primary> #GenInfix}
         {
             leftOperand = result;
             op = addOperation();
@@ -164,30 +188,36 @@ public class Parser
         return result;
     }
     
+    //TODO Add <string> here
+    // <string> -> <strPrime> {+  <strPrime> #Concat
+    
+    // <primary> -> ( <expression> )
+    // <primary> -> <ident>
+    // <primary> -> IntLiteral #ProcessLiteral
     private Expression primary()
     {
         Expression result = new Expression();
         switch ( currentToken.getType() )
         {
-            case Token.LPAREN :
+            case Token.LPAREN :			// <primary> -> ( <expression> )
             {
                 match( Token.LPAREN );
                 result = expression();
                 match( Token.RPAREN );
                 break;
             }
-            case Token.ID:
+            case Token.ID:				// <primary> -> <ident>
             {
                 result = identifier();
                 break;
             }
-            case Token.INTLITERAL:
+            case Token.INTLITERAL:		// <primary> -> IntLiteral #ProcessLiteral
             {
                 match(Token.INTLITERAL);
                 result = processLiteral();
                 break;
             }
-            case Token.MINUS:
+            case Token.MINUS:			// <primary> -> *signed* IntLiteral #ProcessLiteral
             {
                 match(Token.MINUS);
                 processSign();
@@ -195,7 +225,7 @@ public class Parser
                 result = processLiteral();
                 break;
             }
-            case Token.PLUS:
+            case Token.PLUS:			// <primary> -> *signed* IntLiteral #ProcessLiteral
             {
                 match(Token.PLUS);
                 processSign();
@@ -208,18 +238,24 @@ public class Parser
         return result;
     }
     
+    //TODO Add <strPrimary> here
+    //TODO <strPrimary> -> " < character list > "
+    //TODO <strPrimary> -> < ident >
+    
+    // <add op>	-> PlusOp #ProcessOp
+    // <add op>	-> MinusOp #ProcessOp
     private Operation addOperation()
     {
         Operation op = new Operation();
         switch ( currentToken.getType() )
         {
-            case Token.PLUS:
+            case Token.PLUS:			// <add op>	-> PlusOp #ProcessOp
             {
                 match( Token.PLUS ); 
                 op = processOperation();
                 break;
             }
-            case Token.MINUS:
+            case Token.MINUS:			// <add op>	-> MinusOp #ProcessOp
             {
                 match( Token.MINUS ); 
                 op = processOperation();
@@ -230,6 +266,13 @@ public class Parser
         return op;
     }
     
+    //TODO Add <character list> here
+    //TODO <character list> -> <character> { <character> }
+    
+    //TODO Add <character> here
+    //TODO <character> -> *insert ascii characters here*
+    
+    // <ident> -> Id #ProcessId
     private Expression identifier()
     {
         Expression expr;
@@ -261,6 +304,7 @@ public class Parser
     		Parser.signFlag = "-";
     	}
     }
+    
     private Expression processLiteral()
     {
     	Expression expr;
