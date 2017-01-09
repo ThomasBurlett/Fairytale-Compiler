@@ -1,3 +1,3 @@
 OnceUponATime
-	x;
+x := 1;
 TheEnd

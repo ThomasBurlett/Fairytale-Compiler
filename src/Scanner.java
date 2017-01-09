@@ -12,12 +12,12 @@ public class Scanner
     private int currentLineNumber;
     private String currentLine;
     private String nextLine;
-  //  private boolean done;
+    // private boolean done;
     private int currentLocation;
     
     public Scanner(String fname)
     {
-        currentLineNumber = 1;						// Start on line 1
+        currentLineNumber = 0;						// Start on line 1 **changed
         fileName = fname;
         try
         {
@@ -28,11 +28,11 @@ public class Scanner
             currentLocation = 0;					// Start at position 0
             if (currentLine == null )				// Quit if end of file
             {
-   //             done = true;
+                // done = true;						//TODO comment
                 nextLine = null;
             } else									// Read in next line
             {
-   //             done = false;
+                // done = false;						//TODO comment
                 nextLine = bufReader.readLine();
             }
         }
@@ -49,7 +49,7 @@ public class Scanner
     }
     
     public Token findNextToken()
-    {
+    {       	
         int len = currentLine.length();
         String tokenStr = new String();
         int tokenType;
@@ -150,7 +150,7 @@ public class Scanner
             }
             currentLocation = 0;
         }
-//        if (currentLine == null) done = true;  // reached EOF
+        // if (currentLine == null) { done = true; } // reached EOF //TODO comment
         return token;
     }
  

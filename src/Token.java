@@ -27,8 +27,8 @@ public class Token
         if (tokenType == ID)
         {
             String temp = tokenString.toLowerCase();
-            if ( temp.compareTo( "OnceUponATime") == 0) type = BEGIN;	// Modified BEGIN
-            else if ( temp.compareTo( "TheEnd") == 0) type = END;		// Modified END
+            if ( temp.compareTo( "onceuponatime") == 0) type = BEGIN;	// Modified BEGIN
+            else if ( temp.compareTo( "theend") == 0) type = END;		// Modified END
             else if ( temp.compareTo("read") == 0) type = READ;
             else if ( temp.compareTo("write") == 0) type = WRITE;
         }

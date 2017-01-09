@@ -54,15 +54,15 @@ public class Parser
     {
         Parser parser = new Parser();		// Create new parser
       //  scanner = new Scanner( args[0]);
-        scanner = new Scanner( "test");		// Scan in file (get current and next line)
-        codeFactory = new CodeFactory();	// Create new Code Factory
-        symbolTable = new SymbolTable();	// Create new Symbol Table
-        parser.parse();						// Parse data 
+        scanner = new Scanner("testcases/testcase1.txt");	// Scan in file (get current and next line)
+        codeFactory = new CodeFactory();			// Create new Code Factory
+        symbolTable = new SymbolTable();			// Create new Symbol Table
+        parser.parse();								// Parse data 
     }
     
     public void parse()
     {
-        currentToken = scanner.findNextToken();	// Get next token of currentLine 
+        currentToken = scanner.findNextToken();		// Get next token of currentLine 
         systemGoal();
     }
     
@@ -348,6 +348,7 @@ public class Parser
         }
         return expr;
     }
+    
     private void error( Token token )
     {
         System.out.println( "Syntax error! Parsing token type " + token.toString() + " at line number " + 
@@ -355,6 +356,7 @@ public class Parser
         if (token.getType() == Token.ID )
             System.out.println( "ID name: " + token.getId() );
     }
+    
     private void error( int tokenType )
     {
         System.out.println( "Syntax error! Parsing token type " +tokenType + " at line number " + 
