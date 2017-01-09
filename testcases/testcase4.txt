@@ -1,0 +1,4 @@
+OnceUponATime
+	a = "llo";
+	b = "He" + a;
+TheEnd

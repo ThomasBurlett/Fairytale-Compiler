@@ -1,0 +1,3 @@
+OnceUponATime
+	a = 1 + 1;
+TheEnd

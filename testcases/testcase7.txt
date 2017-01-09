@@ -1,0 +1,5 @@
+OnceUponATime
+	a = "hello";
+	b = "world";
+	c = a + b;
+TheEnd
