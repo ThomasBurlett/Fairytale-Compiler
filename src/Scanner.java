@@ -17,20 +17,20 @@ public class Scanner
     
     public Scanner(String fname)
     {
-        currentLineNumber = 1;
+        currentLineNumber = 1;						// Start on line 1
         fileName = fname;
         try
         {
-            fileIn = new FileReader(fileName);
-            bufReader = new BufferedReader(fileIn);
+            fileIn = new FileReader(fileName);		// Read in file
+            bufReader = new BufferedReader(fileIn);	
             
-            currentLine = bufReader.readLine();
-            currentLocation = 0;
-            if (currentLine == null )
+            currentLine = bufReader.readLine();		// Read in first line
+            currentLocation = 0;					// Start at position 0
+            if (currentLine == null )				// Quit if end of file
             {
    //             done = true;
                 nextLine = null;
-            } else
+            } else									// Read in next line
             {
    //             done = false;
                 nextLine = bufReader.readLine();
@@ -53,74 +53,77 @@ public class Scanner
         int len = currentLine.length();
         String tokenStr = new String();
         int tokenType;
-        if ( currentLocation >= len && nextLine == null) 
+        if ( currentLocation >= len && nextLine == null) 	// End of line, end of file
         {
             Token token = new Token( "", Token.EOF );
             return token;
         }
-        if ( currentLocation >= len ) // all characters of currentLine used
+        if ( currentLocation >= len ) 	// All characters of currentLine used, not end of file
         {
-            currentLine = nextLine;
+            currentLine = nextLine;		// Move to next line
             currentLineNumber++;
             try
             {
-                nextLine = bufReader.readLine();
+                nextLine = bufReader.readLine();	// Read in next line if it exists
             }
-            catch (IOException e)
+            catch (IOException e)					// Else, end of file
             {
                 System.out.println(e);
                 Token token = new Token( "", Token.EOF );
                 return token;
             } 
-            currentLocation = 0;
+            currentLocation = 0;		// Set current position to 0
         }
+        
+        // Skip whitespaces
         while ( Character.isWhitespace( currentLine.charAt(currentLocation)))
             currentLocation++;
+        
         int i = currentLocation;
-        if (currentLine.charAt(i) == ';')
+        if (currentLine.charAt(i) == ';')			// Declare token as ';'
         {
             tokenStr = ";";
             tokenType = Token.SEMICOLON;
             i++;
-        } else if (currentLine.charAt(i) == '(')
+        } else if (currentLine.charAt(i) == '(')	// Declare token as '('
         {
             tokenStr = "(";
             tokenType = Token.LPAREN;
             i++;
-        } else if (currentLine.charAt(i) == ')')
+        } else if (currentLine.charAt(i) == ')')	// Declare token as ')'
         {
             tokenStr = ")";
             tokenType = Token.RPAREN;
             i++;
-        } else if(currentLine.charAt(i) == '+')
+        } else if(currentLine.charAt(i) == '+')		// Declare token as '+'
         {
             tokenStr = "+";
             tokenType = Token.PLUS;
             i++;
-        } else if(currentLine.charAt(i) == '-')
+        } else if(currentLine.charAt(i) == '-')		// Declare token as '-'
         {
             tokenStr = "-";
             tokenType = Token.MINUS;
             i++;
-        } else if(currentLine.charAt(i) == ',')
+        } else if(currentLine.charAt(i) == ',')		// Declare token as ','
         {
             tokenStr = ",";
             tokenType = Token.COMMA;
             i++;
-        } else if (currentLine.charAt(i) == ':'  && i+1 < len && currentLine.charAt(i+1) == '=')
+        } else if (currentLine.charAt(i) == ':'  && i+1 < len && currentLine.charAt(i+1) == '=')	// Declare token as ':='
         {
             tokenStr = ":=";
             tokenType = Token.ASSIGNOP;
             i+=2;
-        } else  if ( Character.isDigit((currentLine.charAt(i))) )// find literals
+        } else  if ( Character.isDigit((currentLine.charAt(i))) ) 			// Find and Declare int literals
         {
             while ( i < len && Character.isDigit(currentLine.charAt(i)) )
             {
                 i++;
             }
-            tokenStr = currentLine.substring(currentLocation, i);
-            tokenType = Token.INTLITERAL;
-        } else // find identifiers and reserved words
+            tokenStr = currentLine.substring(currentLocation, i);		
+            tokenType = Token.INTLITERAL;									//TODO Add strings and " below
+        } else 																// Find identifiers and reserved words
         {
             while ( i < len && ! isReservedSymbol(currentLine.charAt(i)) )
             {
@@ -130,17 +133,17 @@ public class Scanner
             tokenType = Token.ID;
         }
        
-        currentLocation = i;
-        Token token = new Token(tokenStr, tokenType);
-        if ( i == len )// characters on currentLine used up
+        currentLocation = i;							// Start at position after everything above
+        Token token = new Token(tokenStr, tokenType);	// Create new token
+        if ( i == len )									// Characters on currentLine used up
         {
-            currentLine = nextLine;
+            currentLine = nextLine;						// End of line, go to next line
             currentLineNumber++;
             try
             {
-                nextLine = bufReader.readLine();
+                nextLine = bufReader.readLine();		// Try reading in new next line
             }
-            catch (IOException e)
+            catch (IOException e)						// End of file
             {
                 System.out.println(e);
                 return null;

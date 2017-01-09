@@ -5,8 +5,8 @@ public class Token
     private String id;
     private int type;
     public final static int LexERROR = 0;
-    public final static int BEGIN = 1;
-    public final static int END = 2;
+    public final static int BEGIN = 1;		// OnceUponATime
+    public final static int END = 2;		// TheEnd
     public final static int READ = 3;
     public final static int WRITE = 4;
     public final static int ID = 5;
@@ -27,8 +27,8 @@ public class Token
         if (tokenType == ID)
         {
             String temp = tokenString.toLowerCase();
-            if ( temp.compareTo( "begin") == 0) type = BEGIN;
-            else if ( temp.compareTo( "end") == 0) type = END;
+            if ( temp.compareTo( "OnceUponATime") == 0) type = BEGIN;	// Modified BEGIN
+            else if ( temp.compareTo( "TheEnd") == 0) type = END;		// Modified END
             else if ( temp.compareTo("read") == 0) type = READ;
             else if ( temp.compareTo("write") == 0) type = WRITE;
         }
@@ -47,8 +47,8 @@ public class Token
         switch (type)
         {
             case LexERROR : str = "Lexical Error"; break;
-            case BEGIN : str = "BEGIN"; break;
-            case END : str = "END"; break;
+            case BEGIN : str = "OnceUponATime"; break;		// Modified Begin
+            case END : str = "TheEnd"; break;				// Modified End
             case READ : str = "READ"; break;
             case WRITE : str = "WRITE"; break;
             case ID: str = "ID"; break;

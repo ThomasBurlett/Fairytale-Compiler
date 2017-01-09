@@ -8,7 +8,7 @@ class CodeFactory {
 
 	public CodeFactory() {
 		tempCount = 0;
-		variablesList = new ArrayList<String>();
+		variablesList = new ArrayList<String>();	// Create list of variables
 	}
 
 	void generateDeclaration(Token token) {

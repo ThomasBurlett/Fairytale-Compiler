@@ -8,22 +8,30 @@
 */
 
 /* Micro grammar
-   <program>	    -> #Start BEGIN <statement list> END
-   <statement list> -> <statement> {<statement>}
-   <statement>	    -> <ident> := <expression> #Assign ;
-   <statement>	    -> READ ( <id list> ) ;
-   <statement>	    -> WRITE ( <expr list> ) ;
-   <id list>	    -> <ident> #ReadId {, <ident> #ReadId }
-   <expr list>	    -> <expression> #WriteExpr {, <expression> #WriteExpr}
-   <expression>	    -> <primary> {<add op> <primary> #GenInfix}
-   <primary>	    -> ( <expression> )
-   <primary>	    -> <ident>
-   <primary>	    -> IntLiteral #ProcessLiteral
-   <primary>	    -> MinusOp #ProcessNegative IntLiteral #ProcessLiteral
-   <add op>	    	-> PlusOp #ProcessOp
-   <add op>	    	-> MinusOp #ProcessOp
-   <ident>	    	-> Id #ProcessId
-   <system goal>    -> <program> EofSym #Finish
+	<program>	       -> #Start OnceUponATime <statement list> TheEnd
+	<statement list>   -> <statement> {<statement>}
+	<statement>	       -> <ident> := <expression> #Assign ;
+	<statement>	       -> <ident> := <string> #Assign ;
+	<statement>	       -> READ ( <id list> ) ;
+	<statement>	       -> WRITE ( <expr list> ) ;
+	**<statement>      -> WRITE ( <string list> ) ;
+	**<statement>	   -> <ident> ;
+	<id list>	       -> <ident> #ReadId {, <ident> #ReadId }
+	<expr list>	       -> <expression> #WriteExpr {, <expression> #WriteExpr}
+	**<string list>    -> <string> #WriteString {, <string> #WriteString}
+	<expression>	   -> <primary> {<add op> <primary> #GenInfix}
+	**<string>	 	   -> <strPrimary> {+  <strPrimary> #Concat }
+	<primary>	       -> ( <expression> )
+	<primary>    	   -> <ident>
+	<primary>	       -> IntLiteral #ProcessLiteral
+	**<strPrimary>     -> " < character list > "
+	**<strPrimary>     -> < ident >
+	<add op>	       -> PlusOp #ProcessOp
+	<add op>	       -> MinusOp #ProcessOp
+	**<character list> -> <character> { <character> }
+	**<character>      -> *insert ascii characters here*
+	<ident>	           -> Id #ProcessId
+	<system goal>      -> <program> EofSym #Finish
  */
 
 
@@ -67,10 +75,10 @@ public class Parser
     // <program> := BEGIN <statement list> END
     private void program()
     {
-        match( Token.BEGIN );					// Match BEGIN to start //TODO Change beginning and end syntax
+        match( Token.BEGIN );					// Match OnceUponATime to start
         codeFactory.generateStart();			// Start Program
         statementList();
-        match( Token.END );						// Match END to end
+        match( Token.END );						// Match TheEnd to end
         codeFactory.generateExit();				// Exit Program
     }
     

@@ -7,7 +7,7 @@ class SymbolTable
     
     public SymbolTable()
     {
-        st = new Vector();
+        st = new Vector();	// Create new symbol table
     }
     
     public void addItem( Token token )
