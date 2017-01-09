@@ -53,11 +53,13 @@ public class Scanner
         int len = currentLine.length();
         String tokenStr = new String();
         int tokenType;
+        
         if ( currentLocation >= len && nextLine == null) 	// End of line, end of file
         {
             Token token = new Token( "", Token.EOF );
             return token;
         }
+        
         if ( currentLocation >= len ) 	// All characters of currentLine used, not end of file
         {
             currentLine = nextLine;		// Move to next line
@@ -128,15 +130,16 @@ public class Scanner
             tokenStr = "\"";
             tokenType = Token.QUOTE;
             i++;
-        } else if(Character.isLetter(currentLine.charAt(i)))				// Declare token as a character
+        } 
+        else if(i > 0 && currentLine.charAt(i-1) == '\"' && Character.isLetter(currentLine.charAt(i)))				// Declare token as a character
         {
-        	while ( i < len && Character.isDigit(currentLine.charAt(i)) )
+        	while ( i < len && Character.isLetter(currentLine.charAt(i)) )
             {
                 i++;
             }
         	tokenStr = currentLine.substring(currentLocation, i);		
             tokenType = Token.STRING;
-        } else 																// Find identifiers and reserved words
+        } else 															// Find identifiers and reserved words
         {
             while ( i < len && ! isReservedSymbol(currentLine.charAt(i)) )
             {

@@ -3,12 +3,14 @@ import java.util.ArrayList;
 class CodeFactory {
 	private static int tempCount;
 	private static ArrayList<String> variablesList;
+	private static ArrayList<ArrayList<String>> stringList;
 	private static int labelCount = 0;
 	private static boolean firstWrite = true;
 
 	public CodeFactory() {
 		tempCount = 0;
-		variablesList = new ArrayList<String>();	// Create list of variables
+		variablesList = new ArrayList<String>();			// Create list of variables
+		stringList = new ArrayList<ArrayList<String>>();	// Create list of strings
 	}
 
 	void generateDeclaration(Token token) {
@@ -236,7 +238,12 @@ class CodeFactory {
 	}
 
 	void generateAssignment(Expression lValue, Expression expr) {
-		if (expr.expressionType == Expression.LITERALEXPR) {
+		if (expr.expressionType == Token.STRING) {
+			ArrayList<String> A = new ArrayList<>();
+			A.add(lValue.expressionName);
+			A.add(expr.expressionName);
+			stringList.add(A);
+		} else if (expr.expressionType == Expression.LITERALEXPR) {
 			System.out.println("\tMOVL " + "$" + expr.expressionIntValue + ", %eax");
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
 		} else {
@@ -244,7 +251,7 @@ class CodeFactory {
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
 		}
 	}
-
+	
 	void generateStart() {
 		System.out.println(".text\n.global _start\n\n_start:\n");
 	}
@@ -260,6 +267,10 @@ class CodeFactory {
 		System.out.println("\n\n.data");
 		for (String var : variablesList)
 			System.out.println(var + ":\t.int 0");
+		
+		for (int pair = 0; pair < stringList.size(); pair++)
+			System.out.println(stringList.get(pair).get(0) + ":\t.string " + "\"" + stringList.get(pair).get(1) + "\"");
+		
 		System.out.println("__minus:  .byte '-'");
 		System.out.println("__negOne: .int -1");
 		System.out.println("__negFlag: .byte '+'");

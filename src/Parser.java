@@ -61,13 +61,13 @@ public class Parser
     
     public void parse()
     {
-        currentToken = scanner.findNextToken();		// Get next token of currentLine 
+        currentToken = scanner.findNextToken();				// Get next token of currentLine 
         systemGoal();
     }
     
     private void systemGoal()
     {
-        program();								// Begin program (begin the CFG)
+        program();											// Begin program (begin the CFG)
         codeFactory.generateData();
     }
     
@@ -107,19 +107,31 @@ public class Parser
             case Token.ID:
             {
                 lValue = identifier();
-          
-                if (currentToken.getType() == Token.SEMICOLON) {	// <statement> -> <ident> ;
-                	match( Token.SEMICOLON );
-                	return;
-                }
-                
-                match( Token.ASSIGNOP );
-                
+	
+				switch (currentToken.getType()) 
+				{
+					case Token.SEMICOLON: { 						// <statement> -> <ident> ;
+						match(Token.SEMICOLON);
+						codeFactory.generateDeclaration(new Token(lValue.expressionName, Token.ID));
+						return;
+					}
+					case Token.ASSIGNOP: {
+						match(Token.ASSIGNOP);
+						break;
+					}
+					default: {
+						error(currentToken);
+						return;
+					}
+				}
+				
                 if (currentToken.getType() == Token.QUOTE) {		// <statement> -> <ident> := <string> #Assign ;
-                	expr = new Expression( 16, string());
+                	match( Token.QUOTE );
+                	expr = string();
                 } else {
                 	expr = expression();                			// <statement> -> <ident> := <expression> #Assign ;
                 }
+                
                 codeFactory.generateAssignment( lValue, expr );
                 match( Token.SEMICOLON );
                 break;
@@ -140,7 +152,7 @@ public class Parser
                 match( Token.LPAREN );
                 
                 if (currentToken.getType() == Token.QUOTE) {		// <statement> -> WRITE ( <stringList> ) ;
-                	expr = new Expression( 16, stringList());
+                	expr = stringList();
                 	break;
                 }
                 
@@ -150,7 +162,7 @@ public class Parser
                 match( Token.SEMICOLON );
                 break;
             }
-            default: error(currentToken);
+            default: error(currentToken);	// Illegal start to statement
         }
     }
     
@@ -181,20 +193,18 @@ public class Parser
             codeFactory.generateWrite(expr);
         }
     }
-    
 
     // <string list> -> <string> #WriteString {, <string> #WriteString} //string()
-    // <expr list> -> <expression> #WriteExpr {, <expression> #WriteExpr}
-    private String stringList()
+    private Expression stringList()
     {
-        String str = "";
+        Expression str = new Expression();
         str = string();
-        //codeFactory.generateWrite(str);
+        codeFactory.generateWrite(str);
         while ( currentToken.getType() == Token.COMMA ) // {, <expression> #WriteExpr}
         {
             match( Token.COMMA );
             str = string();
-            //codeFactory.generateWrite(str);
+            codeFactory.generateWrite(str);
         }
         
         return str;
@@ -216,21 +226,22 @@ public class Parser
             rightOperand = primary();
             result = codeFactory.generateArithExpr( leftOperand, rightOperand, op );
         }
+        
         return result;
     }
     
     //TODO Add <string> here
     // <string> -> <strPrime> {+  <strPrime> #Concat }
-    private String string()
+    private Expression string()
     {
-        String str;
+        Expression str;
         str = strPrimary();
-        //codeFactory.generateWrite(str);
+        // codeFactory.generateWrite(str);
         while ( currentToken.getType() == Token.PLUS ) // {, <expression> #WriteExpr}
         {
             match( Token.PLUS );
             str = strPrimary();
-            //codeFactory.generateWrite(str);
+            // codeFactory.generateWrite(str);
         }
         
         return str;
@@ -285,21 +296,21 @@ public class Parser
     }
     
     // <strPrimary> -> " < character list > "
-    private String strPrimary()
+    private Expression strPrimary()
     {   	
-    	String str = "";
+    	Expression str = new Expression();
     	switch ( currentToken.getType() )
         {
             case Token.STRING:					// <strPrimary> -> " < character list > "
             {
-                //match(Token.QUOTE);
-                str = characterList();
+                // match(Token.QUOTE);
+                str = new Expression(16, characterList());
                 match(Token.QUOTE);
                 break;
             }
             case Token.ID:						// <strPrimary> -> < ident >
             {
-                str = identifier().expressionName;
+                str = identifier();
                 break;
             }
             default: error( currentToken );
@@ -365,13 +376,17 @@ public class Parser
     }
     
     private void match( int tokenType)
-    {
+    {   	
         previousToken = currentToken;
-        if ( currentToken.getType() == tokenType )
-            currentToken = scanner.findNextToken();
-        else 
+        if ( currentToken.getType() == tokenType ) {
+        	if ( Token.END == tokenType )
+        		return;
+           	currentToken = scanner.findNextToken();
+        } else 
         {
             error( tokenType );
+        	System.out.println(" " + currentToken.getId() + " " + currentToken.getType());
+
             currentToken = scanner.findNextToken();
         }
     }
@@ -428,13 +443,14 @@ public class Parser
     {
         System.out.println( "Syntax error! Parsing token type " + token.toString() + " at line number " + 
                 scanner.getLineNumber() );
-        if (token.getType() == Token.ID )
-            System.out.println( "ID name: " + token.getId() );
+//        if (token.getType() == Token.ID )
+//            System.out.println( "ID name: " + token.getId() );
     }
     
     private void error( int tokenType )
     {
         System.out.println( "Syntax error! Parsing token type " +tokenType + " at line number " + 
                 scanner.getLineNumber() );
+//    	assert(true == false);
     }
 }
