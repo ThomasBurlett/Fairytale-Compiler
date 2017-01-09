@@ -25,7 +25,6 @@
 	<primary>    	   -> <ident>
 	<primary>	       -> IntLiteral #ProcessLiteral
 	**<strPrimary>     -> " < character list > "
-	**<strPrimary>     -> < ident >
 	<add op>	       -> PlusOp #ProcessOp
 	<add op>	       -> MinusOp #ProcessOp
 	**<character list> -> <character> { <character> }
@@ -52,12 +51,12 @@ public class Parser
 
     static public void main (String args[])
     {
-        Parser parser = new Parser();		// Create new parser
+        Parser parser = new Parser();						// Create new parser
       //  scanner = new Scanner( args[0]);
         scanner = new Scanner("testcases/testcase1.txt");	// Scan in file (get current and next line)
-        codeFactory = new CodeFactory();			// Create new Code Factory
-        symbolTable = new SymbolTable();			// Create new Symbol Table
-        parser.parse();								// Parse data 
+        codeFactory = new CodeFactory();					// Create new Code Factory
+        symbolTable = new SymbolTable();					// Create new Symbol Table
+        parser.parse();										// Parse data 
     }
     
     public void parse()
@@ -108,20 +107,26 @@ public class Parser
             case Token.ID:
             {
                 lValue = identifier();
-                //TODO: Need it to also work for <statement> -> <ident> ;
+          
+                if (currentToken.getType() == Token.SEMICOLON) {	// <statement> -> <ident> ;
+                	match( Token.SEMICOLON );
+                	return;
+                }
                 
                 match( Token.ASSIGNOP );
                 
-                //TODO: Currently works for 	 <statement> -> <ident> := <expression> #Assign ;
-                //TODO: Need it to also work for <statement> -> <ident> := <string> 	#Assign ;
-                expr = expression();
+                if (currentToken.getType() == Token.QUOTE) {		// <statement> -> <ident> := <string> #Assign ;
+                	expr = new Expression( 16, string());
+                } else {
+                	expr = expression();                			// <statement> -> <ident> := <expression> #Assign ;
+                }
                 codeFactory.generateAssignment( lValue, expr );
                 match( Token.SEMICOLON );
                 break;
             }
             case Token.READ :
             {
-            	//TODO: Currently works for  <statement> -> READ ( <id list> ) ;
+            	// <statement> -> READ ( <id list> ) ;
                 match( Token.READ );
                 match( Token.LPAREN );
                 idList();
@@ -134,8 +139,12 @@ public class Parser
                 match( Token.WRITE );
                 match( Token.LPAREN );
                 
-                //TODO Currently works for 	 	 <statement> -> WRITE ( <expr list> ) ;
-                //TODO: Need it to also work for <statement> -> WRITE ( <string list> ) ;
+                if (currentToken.getType() == Token.QUOTE) {		// <statement> -> WRITE ( <stringList> ) ;
+                	expr = new Expression( 16, stringList());
+                	break;
+                }
+                
+                //TODO <statement> -> WRITE ( <expr list> ) ;
                 expressionList();
                 match( Token.RPAREN );
                 match( Token.SEMICOLON );
@@ -173,9 +182,23 @@ public class Parser
         }
     }
     
-    //TODO Add <string list> here
-    // <string list> -> <string> #WriteString {, <string> #WriteString}
-    
+
+    // <string list> -> <string> #WriteString {, <string> #WriteString} //string()
+    // <expr list> -> <expression> #WriteExpr {, <expression> #WriteExpr}
+    private String stringList()
+    {
+        String str = "";
+        str = string();
+        //codeFactory.generateWrite(str);
+        while ( currentToken.getType() == Token.COMMA ) // {, <expression> #WriteExpr}
+        {
+            match( Token.COMMA );
+            str = string();
+            //codeFactory.generateWrite(str);
+        }
+        
+        return str;
+    }
     
     // <expression>	-> <primary> {<add op> <primary> #GenInfix}
     private Expression expression()
@@ -197,7 +220,22 @@ public class Parser
     }
     
     //TODO Add <string> here
-    // <string> -> <strPrime> {+  <strPrime> #Concat
+    // <string> -> <strPrime> {+  <strPrime> #Concat }
+    private String string()
+    {
+        String str;
+        str = strPrimary();
+        //codeFactory.generateWrite(str);
+        while ( currentToken.getType() == Token.PLUS ) // {, <expression> #WriteExpr}
+        {
+            match( Token.PLUS );
+            str = strPrimary();
+            //codeFactory.generateWrite(str);
+        }
+        
+        return str;
+    }
+    
     
     // <primary> -> ( <expression> )
     // <primary> -> <ident>
@@ -246,11 +284,31 @@ public class Parser
         return result;
     }
     
-    //TODO Add <strPrimary> here
-    //TODO <strPrimary> -> " < character list > "
-    //TODO <strPrimary> -> < ident >
-    
-    // <add op>	-> PlusOp #ProcessOp
+    // <strPrimary> -> " < character list > "
+    private String strPrimary()
+    {   	
+    	String str = "";
+    	switch ( currentToken.getType() )
+        {
+            case Token.STRING:					// <strPrimary> -> " < character list > "
+            {
+                //match(Token.QUOTE);
+                str = characterList();
+                match(Token.QUOTE);
+                break;
+            }
+            case Token.ID:						// <strPrimary> -> < ident >
+            {
+                str = identifier().expressionName;
+                break;
+            }
+            default: error( currentToken );
+        }   
+    	
+    	return str;
+    }
+
+	// <add op>	-> PlusOp #ProcessOp
     // <add op>	-> MinusOp #ProcessOp
     private Operation addOperation()
     {
@@ -274,13 +332,30 @@ public class Parser
         return op;
     }
     
-    //TODO Add <character list> here
-    //TODO <character list> -> <character> { <character> }
-    
-    //TODO Add <character> here
-    //TODO <character> -> *insert ascii characters here*
-    
-    // <ident> -> Id #ProcessId
+    // <character list> -> <character> { <character> }
+    //TODO WRITE
+    private String characterList() {
+        String ch;
+        ch = character();
+        //codeFactory.generateWrite(ch);
+        
+        while ( currentToken.getType() != Token.QUOTE ) // {, <expression> #WriteExpr}
+        {
+            ch = character();
+            //codeFactory.generateWrite(ch);
+        }
+        
+        return ch;
+  	}
+        
+    // <character> -> *insert ascii characters here*
+    private String character() {
+        String str = currentToken.getId();
+        match( Token.STRING );
+        return str;
+	}
+
+	// <ident> -> Id #ProcessId
     private Expression identifier()
     {
         Expression expr;

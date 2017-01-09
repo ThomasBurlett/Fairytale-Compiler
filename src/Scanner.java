@@ -122,7 +122,20 @@ public class Scanner
                 i++;
             }
             tokenStr = currentLine.substring(currentLocation, i);		
-            tokenType = Token.INTLITERAL;									//TODO Add strings and " below
+            tokenType = Token.INTLITERAL;									// TODO Add strings and " below
+        } else if(currentLine.charAt(i) == '\"')							// Declare token as "
+        {
+            tokenStr = "\"";
+            tokenType = Token.QUOTE;
+            i++;
+        } else if(Character.isLetter(currentLine.charAt(i)))				// Declare token as a character
+        {
+        	while ( i < len && Character.isDigit(currentLine.charAt(i)) )
+            {
+                i++;
+            }
+        	tokenStr = currentLine.substring(currentLocation, i);		
+            tokenType = Token.STRING;
         } else 																// Find identifiers and reserved words
         {
             while ( i < len && ! isReservedSymbol(currentLine.charAt(i)) )
