@@ -1,3 +1,4 @@
 OnceUponATime
-	a = "llo";
+~i x;
+x := 5;
 TheEnd

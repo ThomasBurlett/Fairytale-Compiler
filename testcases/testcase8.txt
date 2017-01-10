@@ -1,3 +1,4 @@
 OnceUponATime
-	x = 1;
+~s a := "llo";
+~s c := "he" + a;
 TheEnd

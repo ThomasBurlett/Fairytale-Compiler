@@ -1,3 +1,4 @@
 OnceUponATime
-	b = "He" + a;
+~s a;
+a := "Hello";
 TheEnd

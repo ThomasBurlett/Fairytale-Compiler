@@ -1,4 +1,4 @@
 OnceUponATime
-y := 1;
-z := "Hello";
+~i y := 1;
+~s z := "Hello";
 TheEnd

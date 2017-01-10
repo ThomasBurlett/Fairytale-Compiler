@@ -1,4 +1,3 @@
 OnceUponATime
-	b = "hello";
-	c = 1 + b;
+c := 5;
 TheEnd

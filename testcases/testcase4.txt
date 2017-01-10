@@ -1,4 +1,3 @@
 OnceUponATime
-	a = "llo";
-	b = "He" + a;
+~i x := 5+3;
 TheEnd

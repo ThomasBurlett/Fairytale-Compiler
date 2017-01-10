@@ -1,4 +1,4 @@
 OnceUponATime
-	a = 1;
-	b = 2 + a;
+~s y;
+READ(y);
 TheEnd

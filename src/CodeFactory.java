@@ -51,6 +51,7 @@ class CodeFactory {
 		}
 		}
 	}
+	
 
 	private void generateAssemblyCodeForWriting(String idName) {
 		if (!firstWrite) {
@@ -138,6 +139,34 @@ class CodeFactory {
 			System.out.println("\tret");
 			System.out.println("__writeExit:");
 		}
+	}
+	
+	void generateStringWrite(Expression expr) {
+		/*
+		 * TODO: HEEEEEEEELP MEEEEE
+		 * NOT DONE JUST PLACEHOLDER
+		 */
+		switch (expr.expressionType) {
+		case Expression.IDEXPR:
+		case Expression.TEMPEXPR: {
+			generateAssemblyCodeForStringWriting(expr.expressionName);
+			break;
+		}
+		case Expression.LITERALEXPR: {
+			System.out.println("write " + expr.expressionIntValue);
+		}
+		}
+
+	}
+	
+	private void generateAssemblyCodeForStringWriting(String idName) {
+		System.out.println("\txorl %edx, %edx");
+		System.out.println("\tmov $4, %eax");
+		System.out.println("\tmov $1, %ecx");
+		System.out.println("\tmov $prompt, %ecx");
+		System.out.println("\tmov $promptLen, %edx");
+		System.out.println("\t int $0x80");
+		
 	}
 
 	void generateRead(Expression expr) {

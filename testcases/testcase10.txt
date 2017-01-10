@@ -1,5 +1,6 @@
 OnceUponATime
-	a = 1;
-	b = 2;
-	c = a + b;
+~i y;
+READ(y);
+~i z := y + 1;
+WRITE(z);
 TheEnd
