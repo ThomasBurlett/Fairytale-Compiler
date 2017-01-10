@@ -146,27 +146,32 @@ class CodeFactory {
 		 * TODO: HEEEEEEEELP MEEEEE
 		 * NOT DONE JUST PLACEHOLDER
 		 */
-		switch (expr.expressionType) {
-		case Expression.IDEXPR:
-		case Expression.TEMPEXPR: {
-			generateAssemblyCodeForStringWriting(expr.expressionName);
-			break;
-		}
-		case Expression.LITERALEXPR: {
-			System.out.println("write " + expr.expressionIntValue);
-		}
-		}
+		int length = expr.expressionName.length();
+		
+		generateAssemblyCodeForStringWriting(expr.expressionName, length);
 
 	}
 	
-	private void generateAssemblyCodeForStringWriting(String idName) {
-		System.out.println("\txorl %edx, %edx");
-		System.out.println("\tmov $4, %eax");
-		System.out.println("\tmov $1, %ecx");
-		System.out.println("\tmov $prompt, %ecx");
-		System.out.println("\tmov $promptLen, %edx");
-		System.out.println("\t int $0x80");
-		
+	private void generateAssemblyCodeForStringWriting(String idName, int length) {
+		if (!firstWrite) {
+			
+			/*
+			 * WHAT GOES HERE!?
+			 */
+			
+		} else {
+			
+			//IS THIS RIGHT??
+			firstWrite = false;
+			
+			System.out.println("\txorl %edx, %edx");
+			System.out.println("\tmov $4, %eax");
+			System.out.println("\tmov $1, %ecx");
+			System.out.println("\tmov " + idName + ", %ecx");
+			System.out.println("\tmov " + length + ", %edx");
+			System.out.println("\t int $0x80");
+			System.out.println("__writeStringExit:");
+		}
 	}
 
 	void generateRead(Expression expr) {
