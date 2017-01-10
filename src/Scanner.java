@@ -32,7 +32,7 @@ public class Scanner
                 nextLine = null;
             } else									// Read in next line
             {
-                // done = false;						//TODO comment
+                // done = false;					//TODO comment
                 nextLine = bufReader.readLine();
             }
         }
@@ -117,29 +117,28 @@ public class Scanner
             tokenStr = ":=";
             tokenType = Token.ASSIGNOP;
             i+=2;
-        } else  if ( Character.isDigit((currentLine.charAt(i))) ) 			// Find and Declare int literals
+        } else  if ( Character.isDigit((currentLine.charAt(i))) ) 	// Find and Declare int literals
         {
             while ( i < len && Character.isDigit(currentLine.charAt(i)) )
             {
                 i++;
             }
             tokenStr = currentLine.substring(currentLocation, i);		
-            tokenType = Token.INTLITERAL;									// TODO Add strings and " below
-        } else if(currentLine.charAt(i) == '\"')							// Declare token as "
+            tokenType = Token.INTLITERAL;							// TODO Add strings below
+        } else if(currentLine.charAt(i) == '"')						// Declare token as " <char list> "
         {
-            tokenStr = "\"";
-            tokenType = Token.QUOTE;
-            i++;
-        } 
-        else if(i > 0 && currentLine.charAt(i-1) == '\"' && Character.isLetter(currentLine.charAt(i)))				// Declare token as a character
-        {
-        	while ( i < len && Character.isLetter(currentLine.charAt(i)) )
+        	i++;
+        	
+        	while ( i < len && currentLine.charAt(i) != '"' )
             {
                 i++;
             }
-        	tokenStr = currentLine.substring(currentLocation, i);		
+        	        	
+        	tokenStr = currentLine.substring(currentLocation + 1, i);	// Do not include end quote	
             tokenType = Token.STRING;
-        } else 															// Find identifiers and reserved words
+            i++;
+        } 
+        else 														// Find identifiers and reserved words
         {
             while ( i < len && ! isReservedSymbol(currentLine.charAt(i)) )
             {
@@ -166,7 +165,7 @@ public class Scanner
             }
             currentLocation = 0;
         }
-        // if (currentLine == null) { done = true; } // reached EOF //TODO comment
+        // if (currentLine == null) { done = true; } // reached EOF 	//TODO comment
         return token;
     }
  

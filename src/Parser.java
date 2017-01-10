@@ -8,47 +8,25 @@
 */
 
 /* Micro grammar
-	<program>	       -> #Start OnceUponATime <statement list> TheEnd
-	<statement list>   -> <statement> {<statement>}
-	<statement>	       -> <ident> := <expression> #Assign ;
-	<statement>	       -> <ident> := <string> #Assign ;
-	<statement>	       -> READ ( <id list> ) ;
-	<statement>	       -> WRITE ( <expr list> ) ;
-	**<statement>      -> WRITE ( <string list> ) ;
-	**<statement>	   -> <ident> ;
-	<id list>	       -> <ident> #ReadId {, <ident> #ReadId }
-	<expr list>	       -> <expression> #WriteExpr {, <expression> #WriteExpr}
-	**<string list>    -> <string> #WriteString {, <string> #WriteString}
-	<expression>	   -> <primary> {<add op> <primary> #GenInfix}
-	**<string>	 	   -> <strPrimary> {+  <strPrimary> #Concat }
-	<primary>	       -> ( <expression> )
-	<primary>    	   -> <ident>
-	<primary>	       -> IntLiteral #ProcessLiteral
-	**<strPrimary>     -> " < character list > "
-	<add op>	       -> PlusOp #ProcessOp
-	<add op>	       -> MinusOp #ProcessOp
-	**<character list> -> <character> { <character> }
-	**<character>      -> *insert ascii characters here*
-	<ident>	           -> Id #ProcessId
-	<system goal>      -> <program> EofSym #Finish
+
  < program > 		-> #Start OnceUponATime < statement list > TheEnd 
- < statement list > -> < statement > { < statement > } 
+ < statement list > -> < statement > 	{ < statement > } 
  < statement >  	-> < ident > := < expression > ; 		#Assign 
  < statement >      -> < ident > := < string > ; 			#Assign 
  < statement > 		-> < ident > ; 							#DeclareNotAssign 
  < statement >     	-> READ ( < id list > ) ; 
  < statement >      -> WRITE ( < expr list > ) ; 
  < statement >      -> WRITE ( < string > ) ; 
- < id list >       	-> < ident > {, < ident > } 			#ReadId 
- < expr list >      -> < expression >  {, < expression > }  #WriteExpr 
- < string >      	-> " < char list > ”  { + “ < char list > ” #Concat } 
- < expression >  	-> < primary >  { < add op > < primary > 	#GenInfix } 
+ < id list >       	-> < ident > 		{, < ident > } 		#ReadId 
+ < expr list >      -> < expression >  	{, < expression > } #WriteExpr
+ < string list >	-> <string> 		{, <string> } 		#WriteString
+ < string >      	-> someString  		{ + someString 		#Concat } 
+ < expression >  	-> < primary >  { < add op > < primary > #GenInfix } 
  < primary >       	-> ( < expression > ) 
  < primary >     	-> < ident > 
  < primary >      	-> IntLiteral      						#ProcessLiteral 
  < add op >       	-> PlusOp      							#ProcessOp 
  < add op >       	-> MinusOp      						#ProcessOp 
- < char list >      -> { asci character  }   				#ZeroOrMoreCharacters 
  < ident >          -> < data type > Id     				#ProcessId 
  < ident >          -> Id     					#ProcessId  #MustBeInSymbolTable 
  < data type >  	-> ~i      					#Int  
@@ -77,7 +55,7 @@ public class Parser
     static public void main (String args[])
     {
         Parser parser = new Parser();						// Create new parser
-      //  scanner = new Scanner( args[0]);
+        //scanner = new Scanner( args[0]);
         scanner = new Scanner("testcases/testcase1.txt");	// Scan in file (get current and next line)
         codeFactory = new CodeFactory();					// Create new Code Factory
         symbolTable = new SymbolTable();					// Create new Symbol Table
@@ -151,8 +129,8 @@ public class Parser
 					}
 				}
 				
-                if (currentToken.getType() == Token.QUOTE) {		// <statement> -> <ident> := <string> #Assign ;
-                	match( Token.QUOTE );
+                if (currentToken.getType() == Token.STRING) {		// <statement> -> <ident> := <string> #Assign ;
+                	match( Token.STRING );
                 	expr = string();
                 } else {
                 	expr = expression();                			// <statement> -> <ident> := <expression> #Assign ;
@@ -177,13 +155,13 @@ public class Parser
                 match( Token.WRITE );
                 match( Token.LPAREN );
                 
-                if (currentToken.getType() == Token.QUOTE) {		// <statement> -> WRITE ( <stringList> ) ;
-                	expr = stringList();
-                	break;
+                if (currentToken.getType() == Token.STRING) {		
+                	// <statement> -> WRITE ( <stringList> ) ;
+                	stringList();
+                } else {
+	                // <statement> -> WRITE ( <expr list> ) ;
+	                expressionList();
                 }
-                
-                //TODO <statement> -> WRITE ( <expr list> ) ;
-                expressionList();
                 match( Token.RPAREN );
                 match( Token.SEMICOLON );
                 break;
@@ -220,20 +198,18 @@ public class Parser
         }
     }
 
-    // <string list> -> <string> #WriteString {, <string> #WriteString} //string()
-    private Expression stringList()
+    // <string list> -> <string> #WriteString {, <string> #WriteString}
+    private void stringList()
     {
         Expression str = new Expression();
         str = string();
-        codeFactory.generateWrite(str);
+        //codeFactory.generateStringWrite(str);
         while ( currentToken.getType() == Token.COMMA ) // {, <expression> #WriteExpr}
         {
             match( Token.COMMA );
             str = string();
-            codeFactory.generateWrite(str);
+            //codeFactory.generateStringWrite(str);
         }
-        
-        return str;
     }
     
     // <expression>	-> <primary> {<add op> <primary> #GenInfix}
@@ -256,18 +232,27 @@ public class Parser
         return result;
     }
     
-    //TODO Add <string> here
     // <string> -> <strPrime> {+  <strPrime> #Concat }
+    // Scanner removes double quotes
     private Expression string()
     {
         Expression str;
-        str = strPrimary();
-        // codeFactory.generateWrite(str);
+        Expression leftOperand;
+        Expression rightOperand;
+        
+        // Get the current string
+        str = new Expression(16, currentToken.getId());
+        match(Token.STRING);
+
         while ( currentToken.getType() == Token.PLUS ) // {, <expression> #WriteExpr}
         {
-            match( Token.PLUS );
-            str = strPrimary();
-            // codeFactory.generateWrite(str);
+            leftOperand = str;
+        	match( Token.PLUS );
+            rightOperand = new Expression(16, currentToken.getId());
+            match(Token.STRING);
+            //TODO 
+            //str = codeFactory.generateConcatination( leftOperand, rightOperand, '+' );
+
         }
         
         return str;
@@ -320,30 +305,7 @@ public class Parser
         }
         return result;
     }
-    
-    // <strPrimary> -> " < character list > "
-    private Expression strPrimary()
-    {   	
-    	Expression str = new Expression();
-    	switch ( currentToken.getType() )
-        {
-            case Token.STRING:					// <strPrimary> -> " < character list > "
-            {
-                // match(Token.QUOTE);
-                str = new Expression(16, characterList());
-                match(Token.QUOTE);
-                break;
-            }
-            case Token.ID:						// <strPrimary> -> < ident >
-            {
-                str = identifier();
-                break;
-            }
-            default: error( currentToken );
-        }   
-    	
-    	return str;
-    }
+
 
 	// <add op>	-> PlusOp #ProcessOp
     // <add op>	-> MinusOp #ProcessOp
@@ -370,27 +332,18 @@ public class Parser
     }
     
     // <character list> -> <character> { <character> }
-    //TODO WRITE
-    private String characterList() {
-        String ch;
-        ch = character();
-        //codeFactory.generateWrite(ch);
+//    private String characterList() {
+//        Exression ch = currentToken.getType();
+//        
+//        while ( currentToken.getType() != Token.QUOTE ) // {, <expression> #WriteExpr}
+//        {
+//            ch = character();
+//        }
+//        
+//        return ch;
+//  	}
         
-        while ( currentToken.getType() != Token.QUOTE ) // {, <expression> #WriteExpr}
-        {
-            ch = character();
-            //codeFactory.generateWrite(ch);
-        }
-        
-        return ch;
-  	}
-        
-    // <character> -> *insert ascii characters here*
-    private String character() {
-        String str = currentToken.getId();
-        match( Token.STRING );
-        return str;
-	}
+
 
 	// <ident> -> Id #ProcessId
     private Expression identifier()
