@@ -31,6 +31,31 @@
 	**<character>      -> *insert ascii characters here*
 	<ident>	           -> Id #ProcessId
 	<system goal>      -> <program> EofSym #Finish
+ < program > 		-> #Start OnceUponATime < statement list > TheEnd 
+ < statement list > -> < statement > { < statement > } 
+ < statement >  	-> < ident > := < expression > ; 		#Assign 
+ < statement >      -> < ident > := < string > ; 			#Assign 
+ < statement > 		-> < ident > ; 							#DeclareNotAssign 
+ < statement >     	-> READ ( < id list > ) ; 
+ < statement >      -> WRITE ( < expr list > ) ; 
+ < statement >      -> WRITE ( < string > ) ; 
+ < id list >       	-> < ident > {, < ident > } 			#ReadId 
+ < expr list >      -> < expression >  {, < expression > }  #WriteExpr 
+ < string >      	-> " < char list > ”  { + “ < char list > ” #Concat } 
+ < expression >  	-> < primary >  { < add op > < primary > 	#GenInfix } 
+ < primary >       	-> ( < expression > ) 
+ < primary >     	-> < ident > 
+ < primary >      	-> IntLiteral      						#ProcessLiteral 
+ < add op >       	-> PlusOp      							#ProcessOp 
+ < add op >       	-> MinusOp      						#ProcessOp 
+ < char list >      -> { asci character  }   				#ZeroOrMoreCharacters 
+ < ident >          -> < data type > Id     				#ProcessId 
+ < ident >          -> Id     					#ProcessId  #MustBeInSymbolTable 
+ < data type >  	-> ~i      					#Int  
+ < data type >  	-> ~s      					#String 
+ < system goal > 	-> < program > EofSym    	#Finish 
+ 
+ 
  */
 
 
@@ -107,7 +132,8 @@ public class Parser
             case Token.ID:
             {
                 lValue = identifier();
-	
+                symbolTable.addItem(new Token(lValue.expressionName, lValue.expressionType));
+                
 				switch (currentToken.getType()) 
 				{
 					case Token.SEMICOLON: { 						// <statement> -> <ident> ;
