@@ -1,4 +1,0 @@
-OnceUponATime
-~s y := "hello";
-WRITE(y);
-TheEnd

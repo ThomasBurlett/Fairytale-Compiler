@@ -1,0 +1,4 @@
+OnceUponATime
+~s x;
+x := "Err" + y;
+TheEnd

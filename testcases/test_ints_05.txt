@@ -1,0 +1,4 @@
+OnceUponATime
+~i x;
+READ(x);
+TheEnd

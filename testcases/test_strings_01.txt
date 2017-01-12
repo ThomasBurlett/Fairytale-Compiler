@@ -1,4 +1,3 @@
 OnceUponATime
-~s a;
-a := "Hello";
+~s x := "Hello";
 TheEnd

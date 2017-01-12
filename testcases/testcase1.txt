@@ -1,4 +1,0 @@
-OnceUponATime
-~i y := 1;
-~s z := "Hello";
-TheEnd

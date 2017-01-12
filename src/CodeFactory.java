@@ -1,70 +1,90 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 
 class CodeFactory {
 	private static int tempCount;
-	private static ArrayList<String> variablesList;
-	private static ArrayList<String> stringList;
-	private static ArrayList<String> assign;
-	private static ArrayList<String> stringListAssign;
-	private static ArrayList<String> variables;
-	private static ArrayList<String> variablesAssign;
+	//private static ArrayList<String> variablesList;
+	//private static ArrayList<String> stringList;
+	//private static ArrayList<String> assign;
+	//private static ArrayList<String> stringListAssign;
+	//private static ArrayList<String> variables;
+	//private static ArrayList<String> variablesAssign;
+	private static HashMap<String, String> integers;
+	private static HashMap<String, String> strings;
+	private static ArrayList<String> strs;
+	private static ArrayList<String> ints;
 	private static int labelCount = 0;
 	private static boolean firstWrite = true;
 
 	public CodeFactory() {
 		tempCount = 0;
-		variablesList = new ArrayList<String>();			// Create list of variables
-		stringList = new ArrayList<String>();	// Create list of strings
-		assign = new ArrayList<String>();
-		stringListAssign = new ArrayList<String>();
-		variables = new ArrayList<String>();
-		variablesAssign = new ArrayList<String>();
+		//variablesList = new ArrayList<String>();			// Create list of variables
+		//stringList = new ArrayList<String>();	// Create list of strings
+		//assign = new ArrayList<String>();
+		//stringListAssign = new ArrayList<String>();
+		//variables = new ArrayList<String>();
+		//variablesAssign = new ArrayList<String>();
+		integers = new HashMap<>();
+		strings = new HashMap<>();
+		strs = new ArrayList<>();
+		ints = new ArrayList<>();
 	}
 
 	void generateDeclaration(int dataType, Token token) {
 		if (dataType == Token.STRINGDT) {
-			stringList.add(token.getId());	
+			// stringList.add(token.getId());
+			// If a string is undeclared
+			if (strings.get(token.getId()) == null){
+				strings.put(token.getId(), "");
+				strs.add(token.getId());
+			}
 		} else {
-			variablesList.add(token.getId());		
-			
+			// variablesList.add(token.getId());
+			if (integers.get(token.getId()) == null){
+				integers.put(token.getId(), "0");
+				ints.add(token.getId());
+			}
 		}
 	}
 
 	Expression generateArithExpr(Expression left, Expression right, Operation op) {
 		Expression tempExpr = new Expression(Expression.TEMPEXPR, createTempName());
-		if (right.expressionType == Expression.LITERALEXPR) {
-			System.out.println("\tMOVL " + "$" + right.expressionName + ", %ebx");
-		} else {
+				
+		if ( ints.contains(right.expressionName) || right.expressionType == Expression.LITERALEXPR) {
 			System.out.println("\tMOVL " + right.expressionName + ", %ebx");
-		}
-		if (left.expressionType == Expression.LITERALEXPR) {
-			System.out.println("\tMOVL " + "$" + left.expressionName + ", %eax");
 		} else {
-			System.out.println("\tMOVL " + left.expressionName + ", %eax");
+			System.out.println("\tMOVL " + "$" + right.expressionName + ", %ebx");
 		}
+		
+		if ( ints.contains(left.expressionName) || left.expressionType == Expression.LITERALEXPR) {
+			System.out.println("\tMOVL " + left.expressionName + ", %eax");
+		} else {
+			System.out.println("\tMOVL " + "$" + left.expressionName + ", %eax");
+		}
+		
 		if (op.opType == Token.PLUS) {
 			System.out.println("\tADD %ebx, %eax");
-			
 		} else if (op.opType == Token.MINUS) {
 			System.out.println("\tSUB %ebx, %eax");
 		}
+		
 		System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);
 		return tempExpr;
 	}
 
 	void generateWrite(Expression expr) {
 		switch (expr.expressionType) {
-		case Expression.IDEXPR:
-		case Expression.TEMPEXPR: {
+		//case Expression.IDEXPR:
+		case 5: {
 			generateAssemblyCodeForWriting(expr.expressionName);
 			break;
 		}
-		case Expression.LITERALEXPR: {
+		default: {
 			generateAssemblyCodeForWriting("$" + expr.expressionName);
 		}
 		}
 	}
-	
 
 	private void generateAssemblyCodeForWriting(String idName) {
 		if (!firstWrite) {
@@ -155,7 +175,6 @@ class CodeFactory {
 	}
 	
 	void generateStringWrite(Expression expr) {
-		//Might need to add some $ signs somewhere in here?
 		int length = expr.expressionName.length();
 		String str = expr.expressionName;
 		
@@ -169,16 +188,16 @@ class CodeFactory {
 	
 
 	void generateRead(Expression expr) {
-		switch (expr.expressionType) {
-		case Expression.IDEXPR: 
-		case Expression.TEMPEXPR: {
+		boolean str = true; // Assume string
+		
+		// If in integers table, switch to integer
+		if (integers.get(expr.expressionName) != null)
+			str = false;
+		
+		if (!str) {
 			generateAssemblyCodeForReading(expr.expressionName);
-			break;
-		}
-		case Expression.LITERALEXPR: {
-			// not possible since you cannot read into a literal. An error
-			// should be generated
-		}
+		} else {
+			generateAssemblyCodeForStringReading(expr.expressionName); 
 		}
 	}
 
@@ -256,43 +275,107 @@ class CodeFactory {
 		System.out.println("\tmovl %eax, a");
 		System.out.println("\tmovb $'+', __negFlag");
 		System.out.println(readEndLabel + ":\n");
+	}
 
+	private void generateAssemblyCodeForStringReading(String idName) {		
+		System.out.println("\tmovl $3, %eax \t /* The system call for read (sys_read) */ ");
+		System.out.println("\tmovl $0, %ebx \t /* File descriptor 0 - standard input */ ");
+		System.out.println("\tmovl $" + idName + ", %ecx \t /* Put the character in a buffer */ ");
+		System.out.println("\tmovl $256, %edx \t /* Can read in a maximum of 256 characters */ ");
+		System.out.println("\tint  $0x80 \t /* Call to the Linux OS */ \n");
 	}
 
 	private String generateLabel(String start) {
 		String label = start + labelCount++;
 		return label;
-
 	}
 
 	void generateAssignment(Expression lValue, Expression expr) {
+
+		if (! ints.contains(lValue) && (expr.expressionType == Expression.LITERALEXPR 
+				|| expr.expressionType == Expression.IDEXPR || expr.expressionType == Expression.TEMPEXPR 
+				||expr.expressionType == Token.INTLITERAL)) {
+			System.out.println("Error - cannot assign an int to a string.");
+		}
+		
+		if (! strs.contains(lValue) && expr.expressionType == Token.STRING ) {
+			System.out.println("Error - cannot assign an int to a string.");
+		}
+		
 		if (expr.expressionType == Token.STRING) {
-			//TODO loop
-			assign.add(lValue.expressionName);
-			stringListAssign.add(expr.expressionName);
-		} else if (expr.expressionType == Expression.LITERALEXPR) {
+			// assign.add(lValue.expressionName);
+			// stringListAssign.add(expr.expressionName);
+			strings.put(lValue.expressionName, expr.expressionName);
+			strs.add(lValue.expressionName);
+		} else if (expr.expressionType == Expression.TEMPEXPR) { // Expression.LITERALEXPR) {
+			//integers.put(lValue.expressionName, expr.expressionName);
+			ints.add(lValue.expressionName);
+			
+			System.out.println("\tMOVL " + expr.expressionName + ", %eax");
+			System.out.println("\tMOVL %eax, " + lValue.expressionName);
+		} else if (expr.expressionType == Token.INTLITERAL || expr.expressionType == Expression.LITERALEXPR) { // Expression.LITERALEXPR) {
+			//integers.put(lValue.expressionName, expr.expressionName);
+			ints.add(lValue.expressionName);
+			
 			System.out.println("\tMOVL " + "$" + expr.expressionIntValue + ", %eax");
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
 		} else {
-			System.out.println("\tMOVL " + expr.expressionName + ", %eax");
-			System.out.println("\tMOVL %eax, " + lValue.expressionName);
+			// Variable
+			String val = integers.get(expr.expressionName);
+			
+			if (val != null) {
+				//integers.put(lValue.expressionName, val);
+				ints.add(lValue.expressionName);
+				
+				System.out.println("\tMOVL " + expr.expressionName + ", %eax");
+				System.out.println("\tMOVL %eax, " + lValue.expressionName);
+			} else {
+				strings.put(lValue.expressionName, val);
+				strs.add(lValue.expressionName);
+			}
 		}
 	}
 
 	void generateAssignmentOnDeclaration(Expression lValue, Expression expr) {
 		if (expr.expressionType == Token.STRING) {
 			// String assignment
-			assign.add(lValue.expressionName);
-			stringListAssign.add(expr.expressionName);
-		} else if (expr.expressionType == Expression.LITERALEXPR) {
-			variables.add(lValue.expressionName);
-			variablesAssign.add(expr.expressionName);
+			
+			// assign.add(lValue.expressionName);
+			// stringListAssign.add(expr.expressionName);
+			
+			strings.put(lValue.expressionName, expr.expressionName);
+			strs.add(lValue.expressionName);
+		} else if (expr.expressionType == Expression.LITERALEXPR || expr.expressionType == Token.INTLITERAL) {
+			integers.put(lValue.expressionName, expr.expressionName);
+			ints.add(lValue.expressionName);
+			
+			// variables.add(lValue.expressionName);
+			// variablesAssign.add(expr.expressionName);
+		} else if (expr.expressionType == Expression.IDEXPR || expr.expressionType  == Token.ID) {
+			// Variable
+			String val = strings.get(expr.expressionName);
+			if (val == null) {
+				val = integers.get(expr.expressionName);
+				integers.put(lValue.expressionName, val);
+			} else {
+				strings.put(lValue.expressionName, val);
+			}
+	
+			// variables.add(lValue.expressionName);
+			// variablesAssign.add()
 		} else {
 			System.out.println("\tMOVL " + expr.expressionName + ", %eax");
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
 		}
 	}
 	
+	Expression generateConcatenation( Expression left, Expression right , Expression lValue ) {
+		Expression concat = new Expression(Token.STRING, left.expressionName + right.expressionName);
+		strings.put(lValue.expressionName, concat.expressionName);
+		strs.add(lValue.expressionName);
+
+		return concat;
+	}
 	
 	void generateStart() {
 		System.out.println(".text\n.global _start\n\n_start:\n");
@@ -307,19 +390,45 @@ class CodeFactory {
 
 	public void generateData() {
 		System.out.println("\n\n.data");
-		for (String var : variablesList)
-			System.out.println(var + ":\t.int 0");
-
-		for (int i = 0; i < variables.size(); i ++) {
-			System.out.println(variables.get(i) + ":\t.int " + variablesAssign.get(i));
+//		for (String var : variablesList)
+//			System.out.println(var + ":\t.int 0");
+//
+//		for (int i = 0; i < variables.size(); i ++) {
+//			System.out.println(variables.get(i) + ":\t.int " + variablesAssign.get(i));
+//		}
+//		
+//		for (String var : stringList)
+//			System.out.println(var + ":\t.zero 256");
+//		
+//		for(int i = 0; i < assign.size(); i ++) {
+//			String var = assign.get(i);
+//			System.out.println(var + ":\t.string \"" + stringListAssign.get(i) + "\"");
+//		}
+		
+		HashMap<String, Boolean> seen = new HashMap<>();
+		
+		for (String i : ints) {
+			if (seen.get(i) == null) {
+				if (integers.get(i) == null) {
+					System.out.println(i + ":\t.int 0");
+				} else {
+					System.out.println(i + ":\t.int " + integers.get(i));
+				}
+				seen.put(i, true);
+			}
 		}
 		
-		for (String var : stringList)
-			System.out.println(var + ":\t.zero 256");
-		
-		for(int i = 0; i < assign.size(); i ++) {
-			String var = assign.get(i);
-			System.out.println(var + ":\t.string \"" + stringListAssign.get(i) + "\"");
+		for (String s : strs) {
+			if (seen.get(s) == null) {
+				if (strings.get(s) == null) {
+					System.out.println(s + ":\t.zero 256");
+				} else if (strings.get(s) == "") {
+					System.out.println(s + ":\t.zero 256");
+				} else {
+					System.out.println(s + ":\t.string \"" + strings.get(s) + "\"");
+				}
+				seen.put(s, true);
+			}
 		}
 		
 		System.out.println("__minus:  .byte '-'");
@@ -329,7 +438,8 @@ class CodeFactory {
 
 	private String createTempName() {
 		String tempVar = new String("temp" + tempCount++);
-		variablesList.add(tempVar);
+		// variablesList.add(tempVar);
+		ints.add(tempVar);
 		return tempVar;
 	}
 

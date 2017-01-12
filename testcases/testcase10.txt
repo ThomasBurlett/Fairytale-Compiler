@@ -1,6 +1,0 @@
-OnceUponATime
-~i y;
-READ(y);
-~i z := y + 1;
-WRITE(z);
-TheEnd

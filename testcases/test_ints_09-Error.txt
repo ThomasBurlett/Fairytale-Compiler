@@ -1,0 +1,5 @@
+OnceUponATime
+~i y := 3;
+~i z := 4;
+WRITE(x,y,z);
+TheEnd

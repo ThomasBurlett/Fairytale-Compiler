@@ -61,7 +61,7 @@ public class Parser
     {
         Parser parser = new Parser();						// Create new parser
         //scanner = new Scanner( args[0]);
-        scanner = new Scanner("testcases/testcase15.txt");	// Scan in file (get current and next line)
+        scanner = new Scanner("testcases/test_strings_11-Error.txt");	// Scan in file (get current and next line)
         codeFactory = new CodeFactory();					// Create new Code Factory
         symbolTable = new SymbolTable();					// Create new Symbol Table
         parser.parse();										// Parse data 
@@ -144,11 +144,11 @@ public class Parser
 			}         
             
             // Assignment
-            if (currentToken.getType() == Token.STRING) { // && lValue.expressionType == Token.STRINGDT) {
+            if (currentToken.getType() == Token.STRING & dt == Token.STRINGDT) {
             	// < statement > -> <dataType> < ident > := < stringLiteral > ; #Assign 
             	expr = stringLiteral();
             } else if ( ( currentToken.getType() == Token.INTLITERAL || currentToken.getType() == Token.MINUS 
-            		|| currentToken.getType() == Token.PLUS )) { // && lValue.expressionType == Token.INTDT) {
+            		|| currentToken.getType() == Token.PLUS ) && dt == Token.INTDT) {
             	// < statement > -> <dataType> < ident > := < primary > ; #Assign (not an expression)
             	expr = primary();
             } else if (currentToken.getType() == Token.ID){
@@ -183,7 +183,7 @@ public class Parser
             if (currentToken.getType() == Token.STRING) {		
             	// <statement> -> <ident> := <string> #Assign ;
             	// match( Token.STRING );
-            	expr = string();
+            	expr = string(lValue);
             } else {
             	// <statement> -> <ident> := <expression> #Assign ;
             	expr = expression(); 
@@ -250,13 +250,13 @@ public class Parser
     // <string list> -> <string> #WriteString {, <string> #WriteString}
     private void stringList()
     {
-        Expression str = new Expression();
-        str = string();
+        Expression str;
+        str = stringLiteral(); //string();
         codeFactory.generateStringWrite(str);
         while ( currentToken.getType() == Token.COMMA ) // {, <expression> #WriteExpr}
         {
             match( Token.COMMA );
-            str = string();
+            str = stringLiteral(); //string();
             codeFactory.generateStringWrite(str);
         }
     }
@@ -283,7 +283,7 @@ public class Parser
     
     // <string> -> <strLiteral> {+  <strLiteral> #Concat }
     // Scanner removes double quotes
-    private Expression string()
+    private Expression string(Expression lValue)
     {
         Expression str;
         Expression leftOperand;
@@ -296,10 +296,9 @@ public class Parser
         {
             leftOperand = str;
         	match( Token.PLUS );
-            rightOperand =  stringLiteral();
+            rightOperand = stringLiteral();
             
-            //TODO 
-            //str = codeFactory.generateConcatination( leftOperand, rightOperand, '+' );
+            str = codeFactory.generateConcatenation( leftOperand, rightOperand , lValue);
         }
         
         return str;
@@ -549,9 +548,9 @@ public class Parser
     {
         System.out.println( "Syntax error! (Token) Parsing token type " + token.toString() + " at line number " + 
                 scanner.getLineNumber() );
-        
-    	System.out.println("\nError from token " + currentToken.getId() + 
-    			", \nToken type " + currentToken.getType() + "\n");
+      
+//    	System.out.println("\nError from token " + currentToken.getId() + 
+//    			", \nToken type " + currentToken.getType() + "\n");
     }
     
     private void error( int tokenType )

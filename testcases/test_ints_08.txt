@@ -1,0 +1,4 @@
+OnceUponATime
+~i x := 5;
+WRITE(x);
+TheEnd

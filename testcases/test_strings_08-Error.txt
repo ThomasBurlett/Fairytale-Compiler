@@ -1,0 +1,4 @@
+OnceUponATime
+~s x := 6;
+~i z := "Hello";
+TheEnd

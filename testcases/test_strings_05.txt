@@ -1,0 +1,4 @@
+OnceUponATime
+~s x := "Hello";
+READ(x);
+TheEnd

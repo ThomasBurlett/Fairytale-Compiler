@@ -1,0 +1,6 @@
+OnceUponATime
+~s x;
+~s y;
+~s z;
+READ(x,y,z);
+TheEnd

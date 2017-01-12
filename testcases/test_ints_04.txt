@@ -1,0 +1,5 @@
+OnceUponATime
+~i x := 5;
+~i z;
+z := x + 2;
+TheEnd

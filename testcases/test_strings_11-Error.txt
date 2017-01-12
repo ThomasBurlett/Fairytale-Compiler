@@ -1,0 +1,4 @@
+OnceUponATime
+~s x;
+x := 5;
+TheEnd
