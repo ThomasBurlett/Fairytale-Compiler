@@ -19,9 +19,9 @@ public class Token
     public final static int MINUS = 12;
     public final static int INTLITERAL = 13;
     public final static int EOF = 14;
-    public final static int STRINGID = 15;
+    public final static int STRINGDT = 15;
     public final static int STRING = 16;	// ~s = string
-    public final static int INTID = 17;		// ~i = int
+    public final static int INTDT = 17;		// ~i = int
     
     public Token( String tokenString, int tokenType)
     {
@@ -34,8 +34,6 @@ public class Token
             else if ( temp.compareTo( "theend") == 0) type = END;		// Modified END
             else if ( temp.compareTo("read") == 0) type = READ;
             else if ( temp.compareTo("write") == 0) type = WRITE;
-            else if ( temp.compareTo("~s") == 0) type = STRINGID;
-            else if ( temp.compareTo("~i") == 0) type = INTID;
         }
     }
     public String getId()
@@ -52,8 +50,8 @@ public class Token
         switch (type)
         {
             case LexERROR : str = "Lexical Error"; break;
-            case BEGIN : str = "OnceUponATime"; break;		// Modified Begin
-            case END : str = "TheEnd"; break;				// Modified End
+            case BEGIN : str = "BEGIN"; break;		// Modified Begin
+            case END : str = "END"; break;				// Modified End
             case READ : str = "READ"; break;
             case WRITE : str = "WRITE"; break;
             case ID: str = "ID"; break;
@@ -67,8 +65,8 @@ public class Token
             case INTLITERAL : str = "INTLITERAL"; break;
             case STRING : str = "STRING"; break;
             case EOF : str = "EOF"; break;
-            case STRINGID : str = "~s"; break;
-            case INTID : str = "~i"; break;
+            case STRINGDT : str = "STRINGDT"; break;
+            case INTDT : str = "INTDT"; break;
             default: str = "Lexical Error";
         }
         return str;

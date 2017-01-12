@@ -3,18 +3,23 @@ import java.util.ArrayList;
 class CodeFactory {
 	private static int tempCount;
 	private static ArrayList<String> variablesList;
-	private static ArrayList<ArrayList<String>> stringList;
+	private static ArrayList<String> stringList;
 	private static int labelCount = 0;
 	private static boolean firstWrite = true;
 
 	public CodeFactory() {
 		tempCount = 0;
 		variablesList = new ArrayList<String>();			// Create list of variables
-		stringList = new ArrayList<ArrayList<String>>();	// Create list of strings
+		stringList = new ArrayList<String>();	// Create list of strings
 	}
 
 	void generateDeclaration(Token token) {
-		variablesList.add(token.getId());
+		if (token.getType() == Token.STRING) {
+			stringList.add(token.getId());	
+		} else {
+			variablesList.add(token.getId());		
+			
+		}
 	}
 
 	Expression generateArithExpr(Expression left, Expression right, Operation op) {
@@ -272,12 +277,14 @@ class CodeFactory {
 	}
 
 	void generateAssignment(Expression lValue, Expression expr) {
-		if (expr.expressionType == Token.STRING) {
-			ArrayList<String> A = new ArrayList<>();
-			A.add(lValue.expressionName);
-			A.add(expr.expressionName);
-			stringList.add(A);
-		} else if (expr.expressionType == Expression.LITERALEXPR) {
+//		if (expr.expressionType == Token.STRING) {
+//			ArrayList<String> A = new ArrayList<>();
+//			A.add(lValue.expressionName);
+//			A.add(expr.expressionName);
+//			stringList.add(A);
+//		} else 
+			
+		if (expr.expressionType == Expression.LITERALEXPR) {
 			System.out.println("\tMOVL " + "$" + expr.expressionIntValue + ", %eax");
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
 		} else {
@@ -302,8 +309,8 @@ class CodeFactory {
 		for (String var : variablesList)
 			System.out.println(var + ":\t.int 0");
 		
-		for (int pair = 0; pair < stringList.size(); pair++)
-			System.out.println(stringList.get(pair).get(0) + ":\t.string " + "\"" + stringList.get(pair).get(1) + "\"");
+		for (String var : stringList)
+			System.out.println(var + ":\t.zero 256");
 		
 		System.out.println("__minus:  .byte '-'");
 		System.out.println("__negOne: .int -1");

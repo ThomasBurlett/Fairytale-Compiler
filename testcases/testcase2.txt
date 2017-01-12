@@ -1,4 +1,3 @@
 OnceUponATime
-~i x;
-x := 5;
+~i x := 5;
 TheEnd

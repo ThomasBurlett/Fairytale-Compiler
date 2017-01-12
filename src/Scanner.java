@@ -138,7 +138,27 @@ public class Scanner
             tokenType = Token.STRING;
             i++;
         } 
-        else 														// Find identifiers and reserved words
+        else if(currentLine.charAt(i) == '~')							// Declare token as a data type
+        {
+        	while (i + 1 < len && currentLine.charAt(i + 1) == ' ') {
+        		i++;
+        	}
+        	
+        	if (i + 1 < len && currentLine.charAt(i + 1) == 's') {
+        		i+=2;
+	        	tokenStr = "~s";
+	            tokenType = Token.STRINGDT;
+        	} else if (i + 1 < len && currentLine.charAt(i + 1) == 'i') {
+        		i+=2;
+	        	tokenStr = "~i";
+	            tokenType = Token.INTDT;
+        	} else {
+        		// Error: Not a corrent data type
+        		tokenStr = currentLine.substring(currentLocation, i);
+                tokenType = Token.ID;	
+        		i++;
+        	}
+        } else 														// Find identifiers and reserved words
         {
             while ( i < len && ! isReservedSymbol(currentLine.charAt(i)) )
             {
@@ -172,7 +192,7 @@ public class Scanner
     boolean isReservedSymbol( char ch)
     {
         return( ch == ' ' || ch == '\n' || ch == '\t' || ch == ';' | ch == '+' ||
-                ch == '-' || ch == '(' || ch == ')' || ch == ','  || ch == ':');
+                ch == '-' || ch == '(' || ch == ')' || ch == ','  || ch == ':' || ch == '~');
     }
 
 }

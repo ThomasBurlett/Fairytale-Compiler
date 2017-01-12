@@ -13,7 +13,12 @@
  < statement list > -> < statement > 	{ < statement > } 
  < statement >  	-> < ident > := < expression > ; 		#Assign 
  < statement >      -> < ident > := < string > ; 			#Assign 
- < statement > 		-> < ident > ; 							#DeclareNotAssign 
+ ** Below recently added **
+ < statement >  	-> <dataType> < ident > := < IntLiteral > ; 	#Assign 
+ < statement >  	-> <dataType> < ident > := < ident > ; 			#Assign 
+ < statement >      -> <dataType> < ident > := < stringLiteral > ; 	#Assign 
+ < statement > 		-> <dataType> < ident > ; 						#DeclareNotAssign  
+ ** Above recently added **
  < statement >     	-> READ ( < id list > ) ; 
  < statement >      -> WRITE ( < expr list > ) ; 
  < statement >      -> WRITE ( < string > ) ; 
@@ -56,7 +61,9 @@ public class Parser
     {
         Parser parser = new Parser();						// Create new parser
         //scanner = new Scanner( args[0]);
-        scanner = new Scanner("testcases/testcase1.txt");	// Scan in file (get current and next line)
+        scanner = new Scanner("testcases/testcase2.txt");	// Scan in file (get current and next line)
+        scanner = new Scanner("testcases/testcase6.txt");	// Scan in file (get current and next line)
+
         codeFactory = new CodeFactory();					// Create new Code Factory
         symbolTable = new SymbolTable();					// Create new Symbol Table
         parser.parse();										// Parse data 
@@ -87,8 +94,9 @@ public class Parser
     // <statement list> := <statement> { <statement> }
     private void statementList()
     {
-        while ( currentToken.getType() == Token.ID || currentToken.getType() == Token.READ || 
-                    currentToken.getType() == Token.WRITE)
+        while ( currentToken.getType() == Token.ID || currentToken.getType() == Token.STRINGDT 
+        		|| currentToken.getType() == Token.INTDT || currentToken.getType() == Token.READ 
+        		|| currentToken.getType() == Token.WRITE) 
         {
             statement();
         }
@@ -99,74 +107,109 @@ public class Parser
     // <statement> -> READ ( <id list> ) ;
     // <statement> -> WRITE ( <expr list> ) ;
     // <statement> -> WRITE ( <string list> ) ;
-    // <statement> -> <ident> ;
+    /////////////////////// <statement> -> <ident> ;
+    // < statement >  	-> <dataType> < ident > := < IntLiteral > ; 	#Assign 
+    // < statement >  	-> <dataType> < ident > := < ident > ; 			#Assign 
+    // < statement >    -> <dataType> < ident > := < stringLiteral > ; 	#Assign 
+    // < statement > 	-> <dataType> < ident > ; 						#DeclareNotAssign  
+    
     private void statement()
     {
-        Expression lValue;
+        Expression lValue = new Expression();
         Expression expr;
         
-        switch ( currentToken.getType() )
-        {
-            case Token.ID:
-            {
-                lValue = identifier();
-                symbolTable.addItem(new Token(lValue.expressionName, lValue.expressionType));
-                
-				switch (currentToken.getType()) 
-				{
-					case Token.SEMICOLON: { 						// <statement> -> <ident> ;
-						match(Token.SEMICOLON);
-						codeFactory.generateDeclaration(new Token(lValue.expressionName, Token.ID));
-						return;
-					}
-					case Token.ASSIGNOP: {
-						match(Token.ASSIGNOP);
-						break;
-					}
-					default: {
-						error(currentToken);
-						return;
-					}
+        if ( currentToken.getType() == Token.STRINGDT || currentToken.getType() == Token.INTDT ) {
+        	
+        	dataType();
+        	lValue = identifier();
+            
+            switch(currentToken.getType()) {
+            	case Token.SEMICOLON : {	
+            		// <statement> -> <dataType> <ident> ;
+					match(Token.SEMICOLON);
+					codeFactory.generateDeclaration(new Token(lValue.expressionName, Token.ID));
+					return;
 				}
-				
-                if (currentToken.getType() == Token.STRING) {		// <statement> -> <ident> := <string> #Assign ;
-                	match( Token.STRING );
-                	expr = string();
-                } else {
-                	expr = expression();                			// <statement> -> <ident> := <expression> #Assign ;
-                }
-                
-                codeFactory.generateAssignment( lValue, expr );
-                match( Token.SEMICOLON );
-                break;
+				case Token.ASSIGNOP: {
+					match(Token.ASSIGNOP);
+					break;
+				}
+				default: {
+					error(currentToken);
+					return;
+				}
+			}         
+            
+            //TODO
+            if (currentToken.getType() == Token.STRING) {
+            	// < statement > -> <dataType> < ident > := < stringLiteral > ; #Assign 
+            	//match( Token.STRING );
+            	expr = string(); //change
+            } else if (currentToken.getType() == Token. INTLITERAL) {
+            	// < statement > -> <dataType> < ident > := < ident > ; #Assign 
+            	expr = primary(); //change
+            } else {
+            	// < statement > -> <dataType> < ident > := < ident > ; #Assign 
+            	expr = identifier();                			// <statement> -> <ident> := <expression> #Assign ;
             }
-            case Token.READ :
-            {
-            	// <statement> -> READ ( <id list> ) ;
-                match( Token.READ );
-                match( Token.LPAREN );
-                idList();
-                match( Token.RPAREN );
-                match( Token.SEMICOLON );
-                break;
+            
+            codeFactory.generateAssignment( lValue, expr );
+            match( Token.SEMICOLON );
+        }
+        else if ( currentToken.getType() == Token.ID ) {
+            
+        	lValue = identifier();
+            
+            switch(currentToken.getType()) {
+//            	case Token.SEMICOLON : {	
+//            		// <statement> -> <ident> ;
+//					match(Token.SEMICOLON);
+//					codeFactory.generateDeclaration(new Token(lValue.expressionName, Token.ID));
+//					return;
+//				}
+				case Token.ASSIGNOP: {
+					match(Token.ASSIGNOP);
+					break;
+				}
+				default: {
+					error(currentToken);
+					return;
+				}
+			}
+			
+            if (currentToken.getType() == Token.STRING) {		// <statement> -> <ident> := <string> #Assign ;
+            	match( Token.STRING );
+            	expr = string();
+            } else {
+            	expr = expression();                			// <statement> -> <ident> := <expression> #Assign ;
             }
-            case Token.WRITE :
-            {
-                match( Token.WRITE );
-                match( Token.LPAREN );
-                
-                if (currentToken.getType() == Token.STRING) {		
-                	// <statement> -> WRITE ( <stringList> ) ;
-                	stringList();
-                } else {
-	                // <statement> -> WRITE ( <expr list> ) ;
-	                expressionList();
-                }
-                match( Token.RPAREN );
-                match( Token.SEMICOLON );
-                break;
+            
+            codeFactory.generateAssignment( lValue, expr );
+            match( Token.SEMICOLON );
+        } else if ( currentToken.getType() == Token.READ )
+        {
+        	// <statement> -> READ ( <id list> ) ;
+            match( Token.READ );
+            match( Token.LPAREN );
+            idList();
+            match( Token.RPAREN );
+            match( Token.SEMICOLON );
+        } else if ( currentToken.getType() == Token.WRITE )
+        {
+            match( Token.WRITE );
+            match( Token.LPAREN );
+            
+            if (currentToken.getType() == Token.STRING) {		
+            	// <statement> -> WRITE ( <stringList> ) ;
+            	stringList();
+            } else {
+                // <statement> -> WRITE ( <expr list> ) ;
+                expressionList();
             }
-            default: error(currentToken);	// Illegal start to statement
+            match( Token.RPAREN );
+            match( Token.SEMICOLON );
+        } else {
+        	error(currentToken);	// Illegal start to statement
         }
     }
     
@@ -203,12 +246,12 @@ public class Parser
     {
         Expression str = new Expression();
         str = string();
-        //codeFactory.generateStringWrite(str);
+        codeFactory.generateStringWrite(str);
         while ( currentToken.getType() == Token.COMMA ) // {, <expression> #WriteExpr}
         {
             match( Token.COMMA );
             str = string();
-            //codeFactory.generateStringWrite(str);
+            codeFactory.generateStringWrite(str);
         }
     }
     
@@ -273,7 +316,7 @@ public class Parser
                 result = expression();
                 match( Token.RPAREN );
                 break;
-            }
+            } 
             case Token.ID:				// <primary> -> <ident>
             {
                 result = identifier();
@@ -343,29 +386,84 @@ public class Parser
 //        return ch;
 //  	}
         
-
-
-	// <ident> -> Id #ProcessId
+ 
+    // <ident> -> Id #ProcessId
+	// <ident> -> Id #ProcessId	#Note: Must be in symbol table
     private Expression identifier()
     {
-        Expression expr;
-        match( Token.ID );
-        expr = processIdentifier();
+		Expression expr = new Expression();
+
+    	if ( previousToken.getType() == Token.STRINGDT ) { 
+			match( Token.ID );
+	        expr = processIdentifier();
+		}
+    	else if ( previousToken.getType() == Token.INTDT ) { 
+			match( Token.ID );
+	        expr = processIdentifier();
+		}
+    	else if ( currentToken.getType() ==  Token.ID ) { 
+	        match( Token.ID );
+	        expr = processIdNoType();
+		}
+    	else { 
+    		error( currentToken );
+    	}
+    	
+    	// Changed to add data type in statement function
+//    	switch ( currentToken.getType() ) {
+//    		case Token.STRINGDT: { 
+//    			dataType();
+//    			match( Token.ID );
+//    	        expr = processIdentifier();
+//    		}
+//    		case Token.INTDT: { 
+//    			dataType();
+//    			match( Token.ID );
+//    	        expr = processIdentifier();
+//    		}
+//    		case Token.ID: { 
+//    	        match( Token.ID );
+//    	        expr = processIdNoType();
+//    		}
+//    		default: error( currentToken );
+//    	}
+
         return expr;
     }
     
-    private void match( int tokenType)
+    // < data type >  	-> ~i  	#Int  
+    // < data type >  	-> ~s 	#String 
+    private int dataType() {
+	    switch(currentToken.getType()) {
+		    case Token.STRINGDT: { 
+		    	match( Token.STRINGDT ); 
+		    	return Token.STRINGDT;
+		    }
+			case Token.INTDT: { 
+				match( Token.INTDT ); 
+				return Token.INTDT;
+			}
+			default: error(currentToken);
+	    }
+	    
+	    return -1;
+    }
+    
+    private void match( int tokenType )
     {   	
         previousToken = currentToken;
         if ( currentToken.getType() == tokenType ) {
         	if ( Token.END == tokenType )
         		return;
+        	
            	currentToken = scanner.findNextToken();
         } else 
         {
             error( tokenType );
-        	System.out.println(" " + currentToken.getId() + " " + currentToken.getType());
-
+        	System.out.println("Error from token " + currentToken.getId() + 
+        			", \nToken type " + currentToken.getType() + 
+        			", but looked for type: " + tokenType + "\n");
+        	
             currentToken = scanner.findNextToken();
         }
     }
@@ -406,30 +504,56 @@ public class Parser
         return op;
     }
     
+    /* Called when identifier has a type and needs to be added to the symbol table */
     private Expression processIdentifier()
     {
-        Expression expr = new Expression( Expression.IDEXPR, previousToken.getId());
+        Expression expr = new Expression( previousToken.getType(), previousToken.getId());
         
-        if ( ! symbolTable.checkSTforItem( previousToken.getId() ) )
+        if (!symbolTable.checkSTforItem( previousToken.getId() ) )
         {
             symbolTable.addItem( previousToken );
             codeFactory.generateDeclaration( previousToken );
+        } else {
+        	// Declaring variable as different type than previous declaration
+        	if ( previousToken.getType() == symbolTable.getToken( previousToken.getId() ).getType() ) {
+        		error(previousToken);
+        	}
         }
+        
+        return expr;
+    }
+    
+    private Expression processIdNoType()
+    {
+        //Expression expr = new Expression( Expression.IDEXPR, previousToken.getId());
+        Expression expr = new Expression( previousToken.getType(), previousToken.getId());
+
+        if ( ! symbolTable.checkSTforItem( previousToken.getId() ) )
+        {
+        	// Type never declared
+        	error(previousToken);
+//            symbolTable.addItem( previousToken );
+//            codeFactory.generateDeclaration( previousToken );
+        }
+        
         return expr;
     }
     
     private void error( Token token )
     {
-        System.out.println( "Syntax error! Parsing token type " + token.toString() + " at line number " + 
+        System.out.println( "Syntax error! (Token) Parsing token type " + token.toString() + " at line number " + 
                 scanner.getLineNumber() );
-//        if (token.getType() == Token.ID )
-//            System.out.println( "ID name: " + token.getId() );
+        
+    	System.out.println("\nError from token " + currentToken.getId() + 
+    			", \nToken type " + currentToken.getType() + "\n");
     }
     
     private void error( int tokenType )
     {
-        System.out.println( "Syntax error! Parsing token type " +tokenType + " at line number " + 
+        System.out.println( "Syntax error! (tokenType) Parsing token type " +tokenType + " at line number " + 
                 scanner.getLineNumber() );
+        
+
 //    	assert(true == false);
     }
 }
