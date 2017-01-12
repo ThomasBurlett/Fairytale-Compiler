@@ -1,4 +1,5 @@
 OnceUponATime
-~s a := "llo";
-~s c := "he" + a;
+~s a;
+~s b = "He";
+a := b + "llo";
 TheEnd

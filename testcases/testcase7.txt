@@ -1,3 +1,0 @@
-OnceUponATime
-~s b := "Hel" + "lo";
-TheEnd

@@ -4,6 +4,8 @@ class CodeFactory {
 	private static int tempCount;
 	private static ArrayList<String> variablesList;
 	private static ArrayList<String> stringList;
+	private static ArrayList<String> assign;
+	private static ArrayList<String> stringListAssign;
 	private static int labelCount = 0;
 	private static boolean firstWrite = true;
 
@@ -11,6 +13,8 @@ class CodeFactory {
 		tempCount = 0;
 		variablesList = new ArrayList<String>();			// Create list of variables
 		stringList = new ArrayList<String>();	// Create list of strings
+		assign = new ArrayList<String>();
+		stringListAssign = new ArrayList<String>();
 	}
 
 	void generateDeclaration(Token token) {
@@ -52,7 +56,7 @@ class CodeFactory {
 			break;
 		}
 		case Expression.LITERALEXPR: {
-			System.out.println("write " + expr.expressionIntValue);
+			generateAssemblyCodeForWriting("$" + expr.expressionName);
 		}
 		}
 	}
@@ -147,37 +151,18 @@ class CodeFactory {
 	}
 	
 	void generateStringWrite(Expression expr) {
-		/*
-		 * TODO: HEEEEEEEELP MEEEEE
-		 * NOT DONE JUST PLACEHOLDER
-		 */
+		//Might need to add some $ signs somewhere in here?
 		int length = expr.expressionName.length();
+		String str = expr.expressionName;
 		
-		generateAssemblyCodeForStringWriting(expr.expressionName, length);
-
+		System.out.println("\txorl %edx, %edx");
+		System.out.println("\tmov $4, %eax");
+		System.out.println("\tmov $1, %ecx");
+		System.out.println("\tmov " + str + ", %ecx");
+		System.out.println("\tmov " + length + ", %edx");
+		System.out.println("\t int $0x80");
 	}
 	
-	private void generateAssemblyCodeForStringWriting(String idName, int length) {
-		if (!firstWrite) {
-			
-			/*
-			 * WHAT GOES HERE!?
-			 */
-			
-		} else {
-			
-			//IS THIS RIGHT??
-			firstWrite = false;
-			
-			System.out.println("\txorl %edx, %edx");
-			System.out.println("\tmov $4, %eax");
-			System.out.println("\tmov $1, %ecx");
-			System.out.println("\tmov " + idName + ", %ecx");
-			System.out.println("\tmov " + length + ", %edx");
-			System.out.println("\t int $0x80");
-			System.out.println("__writeStringExit:");
-		}
-	}
 
 	void generateRead(Expression expr) {
 		switch (expr.expressionType) {
@@ -277,12 +262,12 @@ class CodeFactory {
 	}
 
 	void generateAssignment(Expression lValue, Expression expr) {
-//		if (expr.expressionType == Token.STRING) {
-//			ArrayList<String> A = new ArrayList<>();
-//			A.add(lValue.expressionName);
-//			A.add(expr.expressionName);
-//			stringList.add(A);
-//		} else 
+		
+		//Double check that this is right
+		if (expr.expressionType == Token.STRING) {
+			assign.add(lValue.expressionName);
+			stringListAssign.add(expr.expressionName);
+		}
 			
 		if (expr.expressionType == Expression.LITERALEXPR) {
 			System.out.println("\tMOVL " + "$" + expr.expressionIntValue + ", %eax");
@@ -311,6 +296,11 @@ class CodeFactory {
 		
 		for (String var : stringList)
 			System.out.println(var + ":\t.zero 256");
+		
+		for(int i = 0; i < assign.size(); i ++) {
+			String var = assign.get(i);
+			System.out.println(var + ":\t.string \"" + stringListAssign.get(i) + "\"");
+		}
 		
 		System.out.println("__minus:  .byte '-'");
 		System.out.println("__negOne: .int -1");
