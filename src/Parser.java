@@ -57,14 +57,15 @@ public class Parser
         
     }
 
-    static public void main (String args[])
+    // static public void main (String args[])
+    static public void main (String testcase)
     {
-        Parser parser = new Parser();						// Create new parser
+        Parser parser = new Parser();		// Create new parser
         //scanner = new Scanner( args[0]);
-        scanner = new Scanner("testcases/test_strings_11-Error.txt");	// Scan in file (get current and next line)
-        codeFactory = new CodeFactory();					// Create new Code Factory
-        symbolTable = new SymbolTable();					// Create new Symbol Table
-        parser.parse();										// Parse data 
+        scanner = new Scanner(testcase);	// Scan in file (get current and next line)
+        codeFactory = new CodeFactory();	// Create new Code Factory
+        symbolTable = new SymbolTable();	// Create new Symbol Table
+        parser.parse();						// Parse data 
     }
     
     public void parse()
