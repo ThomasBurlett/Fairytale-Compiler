@@ -6,6 +6,8 @@ class CodeFactory {
 	private static ArrayList<String> stringList;
 	private static ArrayList<String> assign;
 	private static ArrayList<String> stringListAssign;
+	private static ArrayList<String> variables;
+	private static ArrayList<String> variablesAssign;
 	private static int labelCount = 0;
 	private static boolean firstWrite = true;
 
@@ -15,10 +17,12 @@ class CodeFactory {
 		stringList = new ArrayList<String>();	// Create list of strings
 		assign = new ArrayList<String>();
 		stringListAssign = new ArrayList<String>();
+		variables = new ArrayList<String>();
+		variablesAssign = new ArrayList<String>();
 	}
 
-	void generateDeclaration(Token token) {
-		if (token.getType() == Token.STRING) {
+	void generateDeclaration(int dataType, Token token) {
+		if (dataType == Token.STRINGDT) {
 			stringList.add(token.getId());	
 		} else {
 			variablesList.add(token.getId());		
@@ -159,14 +163,14 @@ class CodeFactory {
 		System.out.println("\tmov $4, %eax");
 		System.out.println("\tmov $1, %ecx");
 		System.out.println("\tmov " + str + ", %ecx");
-		System.out.println("\tmov " + length + ", %edx");
+		System.out.println("\tmov $" + length + ", %edx");
 		System.out.println("\t int $0x80");
 	}
 	
 
 	void generateRead(Expression expr) {
 		switch (expr.expressionType) {
-		case Expression.IDEXPR:
+		case Expression.IDEXPR: 
 		case Expression.TEMPEXPR: {
 			generateAssemblyCodeForReading(expr.expressionName);
 			break;
@@ -262,14 +266,11 @@ class CodeFactory {
 	}
 
 	void generateAssignment(Expression lValue, Expression expr) {
-		
-		//Double check that this is right
 		if (expr.expressionType == Token.STRING) {
+			//TODO loop
 			assign.add(lValue.expressionName);
 			stringListAssign.add(expr.expressionName);
-		}
-			
-		if (expr.expressionType == Expression.LITERALEXPR) {
+		} else if (expr.expressionType == Expression.LITERALEXPR) {
 			System.out.println("\tMOVL " + "$" + expr.expressionIntValue + ", %eax");
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
 		} else {
@@ -277,6 +278,21 @@ class CodeFactory {
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
 		}
 	}
+
+	void generateAssignmentOnDeclaration(Expression lValue, Expression expr) {
+		if (expr.expressionType == Token.STRING) {
+			// String assignment
+			assign.add(lValue.expressionName);
+			stringListAssign.add(expr.expressionName);
+		} else if (expr.expressionType == Expression.LITERALEXPR) {
+			variables.add(lValue.expressionName);
+			variablesAssign.add(expr.expressionName);
+		} else {
+			System.out.println("\tMOVL " + expr.expressionName + ", %eax");
+			System.out.println("\tMOVL %eax, " + lValue.expressionName);
+		}
+	}
+	
 	
 	void generateStart() {
 		System.out.println(".text\n.global _start\n\n_start:\n");
@@ -293,6 +309,10 @@ class CodeFactory {
 		System.out.println("\n\n.data");
 		for (String var : variablesList)
 			System.out.println(var + ":\t.int 0");
+
+		for (int i = 0; i < variables.size(); i ++) {
+			System.out.println(variables.get(i) + ":\t.int " + variablesAssign.get(i));
+		}
 		
 		for (String var : stringList)
 			System.out.println(var + ":\t.zero 256");

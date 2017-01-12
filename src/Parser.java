@@ -61,9 +61,7 @@ public class Parser
     {
         Parser parser = new Parser();						// Create new parser
         //scanner = new Scanner( args[0]);
-        scanner = new Scanner("testcases/testcase2.txt");	// Scan in file (get current and next line)
-        scanner = new Scanner("testcases/testcase6.txt");	// Scan in file (get current and next line)
-
+        scanner = new Scanner("testcases/testcase15.txt");	// Scan in file (get current and next line)
         codeFactory = new CodeFactory();					// Create new Code Factory
         symbolTable = new SymbolTable();					// Create new Symbol Table
         parser.parse();										// Parse data 
@@ -121,7 +119,7 @@ public class Parser
         if ( currentToken.getType() == Token.STRINGDT || currentToken.getType() == Token.INTDT ) {
         	
         	// Check the data type
-        	dataType();
+        	int dt = dataType();
         	
         	// Check the variable name
         	lValue = identifier();
@@ -131,7 +129,7 @@ public class Parser
             	case Token.SEMICOLON : {	
             		// <statement> -> <dataType> <ident> ;
 					match(Token.SEMICOLON);
-					codeFactory.generateDeclaration(new Token(lValue.expressionName, Token.ID));
+					codeFactory.generateDeclaration(dt, new Token(lValue.expressionName, Token.ID));
 					return;
 				}
 				case Token.ASSIGNOP: {
@@ -146,11 +144,11 @@ public class Parser
 			}         
             
             // Assignment
-            if (currentToken.getType() == Token.STRING && lValue.expressionType == Token.STRINGDT) {
+            if (currentToken.getType() == Token.STRING) { // && lValue.expressionType == Token.STRINGDT) {
             	// < statement > -> <dataType> < ident > := < stringLiteral > ; #Assign 
             	expr = stringLiteral();
-            } else if ((currentToken.getType() == Token.INTLITERAL || currentToken.getType() == Token.MINUS 
-            		|| currentToken.getType() == Token.PLUS ) && lValue.expressionType == Token.INTDT) {
+            } else if ( ( currentToken.getType() == Token.INTLITERAL || currentToken.getType() == Token.MINUS 
+            		|| currentToken.getType() == Token.PLUS )) { // && lValue.expressionType == Token.INTDT) {
             	// < statement > -> <dataType> < ident > := < primary > ; #Assign (not an expression)
             	expr = primary();
             } else if (currentToken.getType() == Token.ID){
@@ -161,7 +159,7 @@ public class Parser
             	return;
             }
             
-            codeFactory.generateAssignment( lValue, expr );
+            codeFactory.generateAssignmentOnDeclaration( lValue, expr );
             match( Token.SEMICOLON );
         }
         else if ( currentToken.getType() == Token.ID ) {
@@ -184,7 +182,7 @@ public class Parser
 			
             if (currentToken.getType() == Token.STRING) {		
             	// <statement> -> <ident> := <string> #Assign ;
-            	match( Token.STRING );
+            	// match( Token.STRING );
             	expr = string();
             } else {
             	// <statement> -> <ident> := <expression> #Assign ;
@@ -401,12 +399,12 @@ public class Parser
     	if ( previousToken.getType() == Token.STRINGDT ) { 
     		// If it was just declared, add to symbol table
 			match( Token.ID );
-	        expr = processIdentifier();
+	        expr = processIdentifier(Token.STRINGDT);
 		}
     	else if ( previousToken.getType() == Token.INTDT ) { 
     		// If it was just declared, add to symbol table
 			match( Token.ID );
-	        expr = processIdentifier();
+	        expr = processIdentifier(Token.INTDT);
 		}
     	else if ( currentToken.getType() ==  Token.ID ) { 
     		// If it was not declared, check the symbol table for it
@@ -513,14 +511,14 @@ public class Parser
     }
     
     /* Called when identifier has a type and needs to be added to the symbol table */
-    private Expression processIdentifier()
+    private Expression processIdentifier(int dataType)
     {
         Expression expr = new Expression( previousToken.getType(), previousToken.getId());
         
         if (!symbolTable.checkSTforItem( previousToken.getId() ) )
         {
             symbolTable.addItem( previousToken );
-            codeFactory.generateDeclaration( previousToken );
+            //codeFactory.generateDeclaration(dataType, previousToken );
         } else {
         	// Declaring variable as different type than previous declaration
         	if ( previousToken.getType() == symbolTable.getToken( previousToken.getId() ).getType() ) {

@@ -117,7 +117,7 @@ public class Scanner
             tokenStr = ":=";
             tokenType = Token.ASSIGNOP;
             i+=2;
-        } else  if ( Character.isDigit((currentLine.charAt(i))) ) 	// Find and Declare int literals
+        } else  if ( Character.isDigit( (currentLine.charAt(i)) ) ) 	// Find and Declare int literals
         {
             while ( i < len && Character.isDigit(currentLine.charAt(i)) )
             {
