@@ -13,12 +13,10 @@
  < statement list > -> < statement > 	{ < statement > } 
  < statement >  	-> < ident > := < expression > ; 		#Assign 
  < statement >      -> < ident > := < string > ; 			#Assign 
- ** Below recently added **
  < statement >  	-> <dataType> < ident > := < IntLiteral > ; 	#Assign 
  < statement >  	-> <dataType> < ident > := < ident > ; 			#Assign 
  < statement >      -> <dataType> < ident > := < stringLiteral > ; 	#Assign 
  < statement > 		-> <dataType> < ident > ; 						#DeclareNotAssign  
- ** Above recently added **
  < statement >     	-> READ ( < id list > ) ; 
  < statement >      -> WRITE ( < expr list > ) ; 
  < statement >      -> WRITE ( < string > ) ; 
