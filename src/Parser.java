@@ -102,27 +102,31 @@ public class Parser
         }
     }
     
-    // <statement> -> <ident> := <expression> #Assign ;
-    // <statement> -> <ident> := <string> 	  #Assign ;
-    // <statement> -> READ ( <id list> ) ;
-    // <statement> -> WRITE ( <expr list> ) ;
-    // <statement> -> WRITE ( <string list> ) ;
-    /////////////////////// <statement> -> <ident> ;
-    // < statement >  	-> <dataType> < ident > := < IntLiteral > ; 	#Assign 
-    // < statement >  	-> <dataType> < ident > := < ident > ; 			#Assign 
-    // < statement >    -> <dataType> < ident > := < stringLiteral > ; 	#Assign 
-    // < statement > 	-> <dataType> < ident > ; 						#DeclareNotAssign  
+    // < statement > -> <ident> := <expression> #Assign ;
+    // < statement > -> <ident> := <string> 	  #Assign ;
+    // < statement > -> READ ( <id list> ) ;
+    // < statement > -> WRITE ( <expr list> ) ;
+    // < statement > -> WRITE ( <string list> ) ;
+    // < statement > -> <dataType> < ident > := < primary > ; 			#Assign #DoNotAllow ( expression )
+    // < statement > -> <dataType> < ident > := < ident > ; 			#Assign 
+    // < statement > -> <dataType> < ident > := < stringLiteral > ; 	#Assign 
+    // < statement > -> <dataType> < ident > ; 							#DeclareNotAssign  
     
     private void statement()
     {
         Expression lValue = new Expression();
         Expression expr;
         
+        // If the variable is being declared via a data type
         if ( currentToken.getType() == Token.STRINGDT || currentToken.getType() == Token.INTDT ) {
         	
+        	// Check the data type
         	dataType();
+        	
+        	// Check the variable name
         	lValue = identifier();
             
+        	// Declaration, Assignment, or Error
             switch(currentToken.getType()) {
             	case Token.SEMICOLON : {	
             		// <statement> -> <dataType> <ident> ;
@@ -131,6 +135,7 @@ public class Parser
 					return;
 				}
 				case Token.ASSIGNOP: {
+					// Assignment
 					match(Token.ASSIGNOP);
 					break;
 				}
@@ -140,34 +145,34 @@ public class Parser
 				}
 			}         
             
-            //TODO
-            if (currentToken.getType() == Token.STRING) {
+            // Assignment
+            if (currentToken.getType() == Token.STRING && lValue.expressionType == Token.STRINGDT) {
             	// < statement > -> <dataType> < ident > := < stringLiteral > ; #Assign 
-            	//match( Token.STRING );
-            	expr = string(); //change
-            } else if (currentToken.getType() == Token. INTLITERAL) {
+            	expr = stringLiteral();
+            } else if ((currentToken.getType() == Token.INTLITERAL || currentToken.getType() == Token.MINUS 
+            		|| currentToken.getType() == Token.PLUS ) && lValue.expressionType == Token.INTDT) {
+            	// < statement > -> <dataType> < ident > := < primary > ; #Assign (not an expression)
+            	expr = primary();
+            } else if (currentToken.getType() == Token.ID){
             	// < statement > -> <dataType> < ident > := < ident > ; #Assign 
-            	expr = primary(); //change
+            	expr = identifier(); 
             } else {
-            	// < statement > -> <dataType> < ident > := < ident > ; #Assign 
-            	expr = identifier();                			// <statement> -> <ident> := <expression> #Assign ;
+            	error(currentToken);
+            	return;
             }
             
             codeFactory.generateAssignment( lValue, expr );
             match( Token.SEMICOLON );
         }
         else if ( currentToken.getType() == Token.ID ) {
-            
+            // Not declaration, just assignment
+        	
+        	// Check the variable name
         	lValue = identifier();
             
             switch(currentToken.getType()) {
-//            	case Token.SEMICOLON : {	
-//            		// <statement> -> <ident> ;
-//					match(Token.SEMICOLON);
-//					codeFactory.generateDeclaration(new Token(lValue.expressionName, Token.ID));
-//					return;
-//				}
 				case Token.ASSIGNOP: {
+					// Assignment
 					match(Token.ASSIGNOP);
 					break;
 				}
@@ -177,11 +182,13 @@ public class Parser
 				}
 			}
 			
-            if (currentToken.getType() == Token.STRING) {		// <statement> -> <ident> := <string> #Assign ;
+            if (currentToken.getType() == Token.STRING) {		
+            	// <statement> -> <ident> := <string> #Assign ;
             	match( Token.STRING );
             	expr = string();
             } else {
-            	expr = expression();                			// <statement> -> <ident> := <expression> #Assign ;
+            	// <statement> -> <ident> := <expression> #Assign ;
+            	expr = expression(); 
             }
             
             codeFactory.generateAssignment( lValue, expr );
@@ -206,6 +213,7 @@ public class Parser
                 // <statement> -> WRITE ( <expr list> ) ;
                 expressionList();
             }
+            
             match( Token.RPAREN );
             match( Token.SEMICOLON );
         } else {
@@ -275,7 +283,7 @@ public class Parser
         return result;
     }
     
-    // <string> -> <strPrime> {+  <strPrime> #Concat }
+    // <string> -> <strLiteral> {+  <strLiteral> #Concat }
     // Scanner removes double quotes
     private Expression string()
     {
@@ -284,23 +292,33 @@ public class Parser
         Expression rightOperand;
         
         // Get the current string
-        str = new Expression(16, currentToken.getId());
-        match(Token.STRING);
+        str = stringLiteral();
 
         while ( currentToken.getType() == Token.PLUS ) // {, <expression> #WriteExpr}
         {
             leftOperand = str;
         	match( Token.PLUS );
-            rightOperand = new Expression(16, currentToken.getId());
-            match(Token.STRING);
+            rightOperand =  stringLiteral();
+            
             //TODO 
             //str = codeFactory.generateConcatination( leftOperand, rightOperand, '+' );
-
         }
         
         return str;
     }
     
+    // <strLiteral> -> "characters"
+    // Scanner removes double quotes
+    private Expression stringLiteral()
+    {
+        Expression str;
+        
+        // Get the current string
+        str = new Expression(Token.STRING, currentToken.getId());
+        match(Token.STRING);
+
+        return str;
+    }
     
     // <primary> -> ( <expression> )
     // <primary> -> <ident>
@@ -372,20 +390,7 @@ public class Parser
             default: error( currentToken );
         }
         return op;
-    }
-    
-    // <character list> -> <character> { <character> }
-//    private String characterList() {
-//        Exression ch = currentToken.getType();
-//        
-//        while ( currentToken.getType() != Token.QUOTE ) // {, <expression> #WriteExpr}
-//        {
-//            ch = character();
-//        }
-//        
-//        return ch;
-//  	}
-        
+    }        
  
     // <ident> -> Id #ProcessId
 	// <ident> -> Id #ProcessId	#Note: Must be in symbol table
@@ -394,14 +399,17 @@ public class Parser
 		Expression expr = new Expression();
 
     	if ( previousToken.getType() == Token.STRINGDT ) { 
+    		// If it was just declared, add to symbol table
 			match( Token.ID );
 	        expr = processIdentifier();
 		}
     	else if ( previousToken.getType() == Token.INTDT ) { 
+    		// If it was just declared, add to symbol table
 			match( Token.ID );
 	        expr = processIdentifier();
 		}
     	else if ( currentToken.getType() ==  Token.ID ) { 
+    		// If it was not declared, check the symbol table for it
 	        match( Token.ID );
 	        expr = processIdNoType();
 		}
@@ -409,7 +417,7 @@ public class Parser
     		error( currentToken );
     	}
     	
-    	// Changed to add data type in statement function
+//    	// Changed to add data type in statement function
 //    	switch ( currentToken.getType() ) {
 //    		case Token.STRINGDT: { 
 //    			dataType();

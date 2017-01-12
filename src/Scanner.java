@@ -28,11 +28,11 @@ public class Scanner
             currentLocation = 0;					// Start at position 0
             if (currentLine == null )				// Quit if end of file
             {
-                // done = true;						//TODO comment
+                // done = true;					
                 nextLine = null;
             } else									// Read in next line
             {
-                // done = false;					//TODO comment
+                // done = false;				
                 nextLine = bufReader.readLine();
             }
         }
@@ -124,8 +124,8 @@ public class Scanner
                 i++;
             }
             tokenStr = currentLine.substring(currentLocation, i);		
-            tokenType = Token.INTLITERAL;							// TODO Add strings below
-        } else if(currentLine.charAt(i) == '"')						// Declare token as " <char list> "
+            tokenType = Token.INTLITERAL;
+        } else if(currentLine.charAt(i) == '"')						// Declare token as " asci characters "
         {
         	i++;
         	
@@ -134,7 +134,7 @@ public class Scanner
                 i++;
             }
         	        	
-        	tokenStr = currentLine.substring(currentLocation + 1, i);	// Do not include end quote	
+        	tokenStr = currentLine.substring(currentLocation + 1, i);	// Do not include beginning nor end quote	
             tokenType = Token.STRING;
             i++;
         } 
@@ -185,7 +185,7 @@ public class Scanner
             }
             currentLocation = 0;
         }
-        // if (currentLine == null) { done = true; } // reached EOF 	//TODO comment
+        // if (currentLine == null) { done = true; } // reached EOF 
         return token;
     }
  
