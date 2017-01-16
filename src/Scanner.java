@@ -12,27 +12,27 @@ public class Scanner
     private int currentLineNumber;
     private String currentLine;
     private String nextLine;
-    // private boolean done;
+  //  private boolean done;
     private int currentLocation;
     
     public Scanner(String fname)
     {
-        currentLineNumber = 0;						// Start on line 1 **changed
+        currentLineNumber = 1;
         fileName = fname;
         try
         {
-            fileIn = new FileReader(fileName);		// Read in file
-            bufReader = new BufferedReader(fileIn);	
+            fileIn = new FileReader(fileName);
+            bufReader = new BufferedReader(fileIn);
             
-            currentLine = bufReader.readLine();		// Read in first line
-            currentLocation = 0;					// Start at position 0
-            if (currentLine == null )				// Quit if end of file
+            currentLine = bufReader.readLine();
+            currentLocation = 0;
+            if (currentLine == null )
             {
-                // done = true;					
+   //             done = true;
                 nextLine = null;
-            } else									// Read in next line
+            } else
             {
-                // done = false;				
+   //             done = false;
                 nextLine = bufReader.readLine();
             }
         }
@@ -49,116 +49,78 @@ public class Scanner
     }
     
     public Token findNextToken()
-    {       	
+    {
         int len = currentLine.length();
         String tokenStr = new String();
         int tokenType;
-        
-        if ( currentLocation >= len && nextLine == null) 	// End of line, end of file
+        if ( currentLocation >= len && nextLine == null) 
         {
             Token token = new Token( "", Token.EOF );
             return token;
         }
-        
-        if ( currentLocation >= len ) 	// All characters of currentLine used, not end of file
+        if ( currentLocation >= len ) // all characters of currentLine used
         {
-            currentLine = nextLine;		// Move to next line
+            currentLine = nextLine;
             currentLineNumber++;
             try
             {
-                nextLine = bufReader.readLine();	// Read in next line if it exists
+                nextLine = bufReader.readLine();
             }
-            catch (IOException e)					// Else, end of file
+            catch (IOException e)
             {
                 System.out.println(e);
                 Token token = new Token( "", Token.EOF );
                 return token;
             } 
-            currentLocation = 0;		// Set current position to 0
+            currentLocation = 0;
         }
-        
-        // Skip whitespaces
         while ( Character.isWhitespace( currentLine.charAt(currentLocation)))
             currentLocation++;
-        
         int i = currentLocation;
-        if (currentLine.charAt(i) == ';')			// Declare token as ';'
+        if (currentLine.charAt(i) == ';')
         {
             tokenStr = ";";
             tokenType = Token.SEMICOLON;
             i++;
-        } else if (currentLine.charAt(i) == '(')	// Declare token as '('
+        } else if (currentLine.charAt(i) == '(')
         {
             tokenStr = "(";
             tokenType = Token.LPAREN;
             i++;
-        } else if (currentLine.charAt(i) == ')')	// Declare token as ')'
+        } else if (currentLine.charAt(i) == ')')
         {
             tokenStr = ")";
             tokenType = Token.RPAREN;
             i++;
-        } else if(currentLine.charAt(i) == '+')		// Declare token as '+'
+        } else if(currentLine.charAt(i) == '+')
         {
             tokenStr = "+";
             tokenType = Token.PLUS;
             i++;
-        } else if(currentLine.charAt(i) == '-')		// Declare token as '-'
+        } else if(currentLine.charAt(i) == '-')
         {
             tokenStr = "-";
             tokenType = Token.MINUS;
             i++;
-        } else if(currentLine.charAt(i) == ',')		// Declare token as ','
+        } else if(currentLine.charAt(i) == ',')
         {
             tokenStr = ",";
             tokenType = Token.COMMA;
             i++;
-        } else if (currentLine.charAt(i) == ':'  && i+1 < len && currentLine.charAt(i+1) == '=')	// Declare token as ':='
+        } else if (currentLine.charAt(i) == ':'  && i+1 < len && currentLine.charAt(i+1) == '=')
         {
             tokenStr = ":=";
             tokenType = Token.ASSIGNOP;
             i+=2;
-        } else  if ( Character.isDigit( (currentLine.charAt(i)) ) ) 	// Find and Declare int literals
+        } else  if ( Character.isDigit((currentLine.charAt(i))) )// find literals
         {
             while ( i < len && Character.isDigit(currentLine.charAt(i)) )
             {
                 i++;
             }
-            tokenStr = currentLine.substring(currentLocation, i);		
+            tokenStr = currentLine.substring(currentLocation, i);
             tokenType = Token.INTLITERAL;
-        } else if(currentLine.charAt(i) == '"')						// Declare token as " asci characters "
-        {
-        	i++;
-        	
-        	while ( i < len && currentLine.charAt(i) != '"' )
-            {
-                i++;
-            }
-        	        	
-        	tokenStr = currentLine.substring(currentLocation + 1, i);	// Do not include beginning nor end quote	
-            tokenType = Token.STRING;
-            i++;
-        } 
-        else if(currentLine.charAt(i) == '~')							// Declare token as a data type
-        {
-        	while (i + 1 < len && currentLine.charAt(i + 1) == ' ') {
-        		i++;
-        	}
-        	
-        	if (i + 1 < len && currentLine.charAt(i + 1) == 's') {
-        		i+=2;
-	        	tokenStr = "~s";
-	            tokenType = Token.STRINGDT;
-        	} else if (i + 1 < len && currentLine.charAt(i + 1) == 'i') {
-        		i+=2;
-	        	tokenStr = "~i";
-	            tokenType = Token.INTDT;
-        	} else {
-        		// Error: Not a corrent data type
-        		tokenStr = currentLine.substring(currentLocation, i);
-                tokenType = Token.ID;	
-        		i++;
-        	}
-        } else 														// Find identifiers and reserved words
+        } else // find identifiers and reserved words
         {
             while ( i < len && ! isReservedSymbol(currentLine.charAt(i)) )
             {
@@ -168,31 +130,31 @@ public class Scanner
             tokenType = Token.ID;
         }
        
-        currentLocation = i;							// Start at position after everything above
-        Token token = new Token(tokenStr, tokenType);	// Create new token
-        if ( i == len )									// Characters on currentLine used up
+        currentLocation = i;
+        Token token = new Token(tokenStr, tokenType);
+        if ( i == len )// characters on currentLine used up
         {
-            currentLine = nextLine;						// End of line, go to next line
+            currentLine = nextLine;
             currentLineNumber++;
             try
             {
-                nextLine = bufReader.readLine();		// Try reading in new next line
+                nextLine = bufReader.readLine();
             }
-            catch (IOException e)						// End of file
+            catch (IOException e)
             {
                 System.out.println(e);
                 return null;
             }
             currentLocation = 0;
         }
-        // if (currentLine == null) { done = true; } // reached EOF 
+//        if (currentLine == null) done = true;  // reached EOF
         return token;
     }
  
     boolean isReservedSymbol( char ch)
     {
         return( ch == ' ' || ch == '\n' || ch == '\t' || ch == ';' | ch == '+' ||
-                ch == '-' || ch == '(' || ch == ')' || ch == ','  || ch == ':' || ch == '~');
+                ch == '-' || ch == '(' || ch == ')' || ch == ','  || ch == ':');
     }
 
 }
