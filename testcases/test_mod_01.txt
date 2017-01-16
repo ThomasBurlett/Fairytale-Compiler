@@ -1,0 +1,4 @@
+OnceUponATime
+~i x := 2;
+x := x % 4;
+TheEnd

@@ -1,0 +1,14 @@
+OnceUponATime
+~b x := True;
+~b z := False;
+~b r;
+r := x AND z;
+~b s;
+s := x OR z;
+~b t;
+t := x AND NOT z;
+~b u;
+u := x AND x;
+~b w;
+w := z OR z;
+TheEnd

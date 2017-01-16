@@ -1,0 +1,6 @@
+OnceUponATime
+~b x := True;
+~b z := 3;
+~b r;
+r := x AND z;
+TheEnd

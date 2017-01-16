@@ -1,0 +1,4 @@
+OnceUponATime
+~b x := True;
+x := x + 4;
+TheEnd
