@@ -11,4 +11,8 @@ t := x AND NOT z;
 u := x AND x;
 ~b w;
 w := z OR z;
+~b a;
+a := z AND z;
+~b b;
+b := x OR x;
 TheEnd
