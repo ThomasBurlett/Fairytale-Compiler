@@ -1,52 +1,136 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 class CodeFactory {
 	private static int tempCount;
-	private static ArrayList<String> variablesList;
+	private static ArrayList<String> intVariablesList;
+	private static ArrayList<String> boolVariablesList;
+	private static HashMap<String, Integer> assignedVariables;
+
 	private static int labelCount = 0;
 	private static boolean firstWrite = true;
 
 	public CodeFactory() {
 		tempCount = 0;
-		variablesList = new ArrayList<String>();
+		intVariablesList = new ArrayList<String>();
+		boolVariablesList = new ArrayList<String>();
+		assignedVariables = new HashMap<>();
 	}
 
-	void generateDeclaration(Token token) {
-		variablesList.add(token.getId());
-	}
-
-	Expression generateArithExpr(Expression left, Expression right, Operation op) {
-		Expression tempExpr = new Expression(Expression.TEMPEXPR, createTempName());
-		if (right.expressionType == Expression.LITERALEXPR) {
-			System.out.println("\tMOVL " + "$" + right.expressionName + ", %ebx");
-		} else {
-			System.out.println("\tMOVL " + right.expressionName + ", %ebx");
+//	void generateDeclaration(Token token) {
+//		variablesList.add(token.getId());
+//	}
+	
+	void generateDeclaration( Expression variable ) {
+		String var = variable.expressionName;
+		int type = variable.expressionValueType;
+		
+		//System.out.println(type);
+		if ( type == Token.INTLITERAL ) {
+			intVariablesList.add(var);
+		} else if ( type == Token.BOOL ) {
+			boolVariablesList.add(var);
 		}
+	}
+	
+
+	Expression generateMathExpr(Expression left, Expression right, Operation op) {
+		Expression tempExpr = new Expression(Expression.TEMPEXPR, createIntTempName());
+				
+		// Process left side of expression
 		if (left.expressionType == Expression.LITERALEXPR) {
 			System.out.println("\tMOVL " + "$" + left.expressionName + ", %eax");
 		} else {
 			System.out.println("\tMOVL " + left.expressionName + ", %eax");
 		}
-		if (op.opType == Token.PLUS) {
-			System.out.println("\tADD %ebx, %eax");
-			
-		} else if (op.opType == Token.MINUS) {
-			System.out.println("\tSUB %ebx, %eax");
+		
+		// Process right side of expression
+		if (right.expressionType == Expression.LITERALEXPR) {
+			System.out.println("\tMOVL " + "$" + right.expressionName + ", %ebx");
+		} else {
+			System.out.println("\tMOVL " + right.expressionName + ", %ebx");
 		}
+		
+		
+		if (op.opType == Token.PLUS) {
+			// ADDITION
+			System.out.println("\tADD %ebx, %eax");
+		} else if (op.opType == Token.MINUS) {
+			// SUBTRACTION
+			System.out.println("\tSUB %ebx, %eax");
+		} else if (op.opType == Token.MULT) {
+			// MULTIPLICATION
+			System.out.println("\tIMULL %ebx");
+		} else if (op.opType == Token.DIV || op.opType == Token.MOD) {
+			// DIVISION & MODULO
+			System.out.println("\tIDIVL %ebx");
+		} 
+		
+		if (op.opType == Token.MOD) {
+			// Modulo takes from the remainder register, EDX
+			System.out.println("\tMOVL " + "%edx, " + tempExpr.expressionName);
+		} else {
+			System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);
+		}
+		
+		return tempExpr;
+	}
+	
+	
+	
+	
+	/* Generate OR / AND boolean expressions */
+	Expression generateBoolExpr(Expression left, Expression right, Operation op) {
+		Expression tempExpr = new Expression(Expression.TEMPEXPR, createBoolTempName());
+
+		System.out.println("\t/* Clear out EAX and EBX registers */");
+		System.out.println("\tXORL %eax, %eax");
+		System.out.println("\tXORL %ebx, %ebx");
+		
+		// Process left expression
+		System.out.println("\tMOVL " + left.expressionName + ", %eax");
+		
+		if (left.NOTflag) {
+			System.out.println("\t/* Negate and increment to enforce the NOT */");
+			System.out.println("\tNEG  %eax");
+			System.out.println("\tINC  %eax");
+		} 
+		
+		// Process right expression
+		System.out.println("\tMOVL " + right.expressionName + ", %ebx");
+		
+		if (right.NOTflag) {
+			System.out.println("\t/* Negate and increment to enforce the NOT */");
+			System.out.println("\tNEG  %ebx");
+			System.out.println("\tINC  %ebx");
+		}
+		
+		// Process operation
+		if (op.opType == Token.AND) {
+			System.out.println("\t/* Generate AND expression */");
+			System.out.println("\tANDL %ebx, %eax");	
+		} else if (op.opType == Token.OR) {
+			System.out.println("\t/* Generate OR expression */");
+			System.out.println("\tORL %ebx, %eax");
+		}
+		
 		System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);
 		return tempExpr;
 	}
-
+	
+	
+	
+	
 	void generateWrite(Expression expr) {
 		switch (expr.expressionType) {
 		case Expression.IDEXPR:
-		case Expression.TEMPEXPR: {
-			generateAssemblyCodeForWriting(expr.expressionName);
-			break;
-		}
-		case Expression.LITERALEXPR: {
-			generateAssemblyCodeForWriting("$" + expr.expressionName);
-		}
+			case Expression.TEMPEXPR: {
+				generateAssemblyCodeForWriting(expr.expressionName);
+				break;
+			}
+			case Expression.LITERALEXPR: {
+				generateAssemblyCodeForWriting("$" + expr.expressionName);
+			}
 		}
 	}
 
@@ -152,15 +236,15 @@ class CodeFactory {
 
 	void generateRead(Expression expr) {
 		switch (expr.expressionType) {
-		case Expression.IDEXPR:
-		case Expression.TEMPEXPR: {
-			generateAssemblyCodeForReading(expr.expressionName);
-			break;
-		}
-		case Expression.LITERALEXPR: {
-			// not possible since you cannot read into a literal. An error
-			// should be generated
-		}
+			case Expression.IDEXPR:
+			case Expression.TEMPEXPR: {
+				generateAssemblyCodeForReading(expr.expressionName);
+				break;
+			}
+			case Expression.LITERALEXPR: {
+				// not possible since you cannot read into a literal. An error
+				// should be generated
+			}
 		}
 	}
 
@@ -244,19 +328,49 @@ class CodeFactory {
 	private String generateLabel(String start) {
 		String label = start + labelCount++;
 		return label;
-
 	}
 
+	
 	void generateAssignment(Expression lValue, Expression expr) {
-		if (expr.expressionType == Expression.LITERALEXPR) {
+		System.out.println("\t/* Clear out EAX and EBX registers */");
+		System.out.println("\tXORL %eax, %eax");
+		System.out.println("\tXORL %ebx, %ebx");
+		System.out.println("");
+		
+		if (expr.expressionType == Expression.LITERALEXPR && expr.expressionValueType != Token.BOOL ) {
 			System.out.println("\tMOVL " + "$" + expr.expressionIntValue + ", %eax");
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
+			
 		} else {
-			System.out.println("\tMOVL " + expr.expressionName + ", %eax");
+			System.out.println("\tMOVL " + expr.expressionName + ", %eax");	
+			
+			if (expr.NOTflag) {
+				System.out.println("\tNEG  %eax");
+				System.out.println("\tINC  %eax");	
+			}
+			
 			System.out.println("\tMOVL %eax, " + lValue.expressionName);
 		}
 	}
 
+	
+	
+	void generateInitAssignment(Expression lValue, Expression expr) {
+		String var = lValue.expressionName;
+		int type = expr.expressionValueType;
+		int value = expr.expressionIntValue; // new Integer( expr.expressionName ).intValue();
+		
+		if ( type == Token.INTLITERAL ) {
+			intVariablesList.add(var);
+			assignedVariables.put(var, value);
+		} else if ( type == Token.BOOL ) {
+			boolVariablesList.add(var);
+			assignedVariables.put(var, value);
+		} else {
+			// Error			
+		}
+	}
+	
 	void generateStart() {
 		System.out.println(".text\n.global _start\n\n_start:\n");
 	}
@@ -270,17 +384,39 @@ class CodeFactory {
 
 	public void generateData() {
 		System.out.println("\n\n.data");
-		for (String var : variablesList)
-			System.out.println(var + ":\t.int 0");
+		
+		for (String var : intVariablesList) {	
+			if (assignedVariables.get(var) == null) {
+				System.out.println(var + ":\t.int 0");
+			} else {
+				System.out.println(var + ":\t.int " + assignedVariables.get(var));
+			}
+		}
+			
+		//TODO: Distinguish between bool and int
+		for (String var : boolVariablesList) {						
+			if (assignedVariables.get(var) == null) {
+				System.out.println(var + ":\t.int 0");
+			} else {
+				System.out.println(var + ":\t.int " + assignedVariables.get(var));
+			}
+		}
+			
+		System.out.println("");
 		System.out.println("__minus:  .byte '-'");
 		System.out.println("__negOne: .int -1");
 		System.out.println("__negFlag: .byte '+'");
 	}
 
-	private String createTempName() {
+	private String createIntTempName() {
 		String tempVar = new String("temp" + tempCount++);
-		variablesList.add(tempVar);
+		intVariablesList.add(tempVar);
 		return tempVar;
 	}
 
+	private String createBoolTempName() {
+		String tempVar = new String("temp" + tempCount++);
+		boolVariablesList.add(tempVar);
+		return tempVar;
+	}
 }

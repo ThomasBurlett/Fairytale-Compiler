@@ -1,5 +1,0 @@
-OnceUponATime
-~i x;
-~b b = True;
-x := (2 + 4) * b;
-TheEnd

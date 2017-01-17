@@ -1,0 +1,4 @@
+OnceUponATime
+~b x := True;
+x := NOT x;
+TheEnd

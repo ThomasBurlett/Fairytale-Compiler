@@ -19,6 +19,17 @@ public class Token
     public final static int MINUS = 12;
     public final static int INTLITERAL = 13;
     public final static int EOF = 14;
+    
+    public final static int MULT = 17;
+    public final static int DIV = 18;
+    public final static int MOD = 19;
+    public final static int BOOL = 20;
+    public final static int BOOLDT = 21;
+    public final static int INTDT = 22;
+    public final static int ERR = 23;
+    public final static int AND = 24;
+    public final static int OR = 25;
+    public final static int NOT = 26;
 
     public Token( String tokenString, int tokenType)
     {
@@ -27,10 +38,17 @@ public class Token
         if (tokenType == ID)
         {
             String temp = tokenString.toLowerCase();
-            if ( temp.compareTo( "begin") == 0) type = BEGIN;
-            else if ( temp.compareTo( "end") == 0) type = END;
+            if ( temp.compareTo( "onceuponatime") == 0) type = BEGIN;
+            else if ( temp.compareTo( "theend") == 0) type = END;
             else if ( temp.compareTo("read") == 0) type = READ;
             else if ( temp.compareTo("write") == 0) type = WRITE;
+            else if ( temp.compareTo("true") == 0) type = BOOL;
+            else if ( temp.compareTo("false") == 0) type = BOOL;
+            else if ( temp.compareTo("not") == 0) type = NOT;
+            else if ( temp.compareTo("and") == 0) type = AND;
+            else if ( temp.compareTo("or") == 0) type = OR;
+
+
         }
     }
     public String getId()
@@ -61,6 +79,13 @@ public class Token
             case MINUS : str = "MINUS"; break;
             case INTLITERAL : str = "INTLITERAL"; break;
             case EOF : str = "EOF"; break;
+            case MULT : str = "MULT"; break;
+            case DIV : str = "DIV"; break;
+            case MOD : str = "MOD"; break;
+            case BOOL : str = "BOOL"; break;
+            case INTDT : str = "INTDT"; break;
+            case BOOLDT : str = "BOOLDT"; break;
+            case ERR : str = "ERR"; break;
             default: str = "Lexical Error";
         }
         return str;

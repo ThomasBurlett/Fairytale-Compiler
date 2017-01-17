@@ -12,7 +12,6 @@ public class Scanner
     private int currentLineNumber;
     private String currentLine;
     private String nextLine;
-  //  private boolean done;
     private int currentLocation;
     
     public Scanner(String fname)
@@ -28,11 +27,9 @@ public class Scanner
             currentLocation = 0;
             if (currentLine == null )
             {
-   //             done = true;
                 nextLine = null;
             } else
             {
-   //             done = false;
                 nextLine = bufReader.readLine();
             }
         }
@@ -112,6 +109,37 @@ public class Scanner
             tokenStr = ":=";
             tokenType = Token.ASSIGNOP;
             i+=2;
+        } else if (currentLine.charAt(i) == '*')					// Multiplication
+        {
+            tokenStr = "*";
+            tokenType = Token.MULT;
+            i++;
+        } else if (currentLine.charAt(i) == '/')					// Division
+        {
+            tokenStr = "/";
+            tokenType = Token.DIV;
+            i++;
+        } else if (currentLine.charAt(i) == '%')					// Modulo
+        {
+            tokenStr = "%";
+            tokenType = Token.MOD;
+            i++;
+        } else if (currentLine.charAt(i) == '~'  && i+1 < len)		// Data Types
+        {
+        	if (currentLine.charAt(i+1) == 'i') {
+	            tokenStr = "~i";
+	            tokenType = Token.INTDT;
+        	} else if (currentLine.charAt(i+1) == 'b') {
+	            tokenStr = "~b";
+	            tokenType = Token.BOOLDT;
+        	} else {
+        		// Error - Invalid data type
+        		tokenStr = "~" + currentLine.charAt(i+1);
+	            tokenType = Token.ERR;
+        		System.out.println("ERROR! " +  tokenStr + " is not a valid data type.");	
+        	}
+
+            i+=2;
         } else  if ( Character.isDigit((currentLine.charAt(i))) )// find literals
         {
             while ( i < len && Character.isDigit(currentLine.charAt(i)) )
@@ -147,14 +175,14 @@ public class Scanner
             }
             currentLocation = 0;
         }
-//        if (currentLine == null) done = true;  // reached EOF
+
         return token;
     }
  
     boolean isReservedSymbol( char ch)
     {
         return( ch == ' ' || ch == '\n' || ch == '\t' || ch == ';' | ch == '+' ||
-                ch == '-' || ch == '(' || ch == ')' || ch == ','  || ch == ':');
+                ch == '-' || ch == '(' || ch == ')' || ch == ','  || ch == ':' || ch == '~');
     }
 
 }

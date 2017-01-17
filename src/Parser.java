@@ -42,11 +42,12 @@ public class Parser
         
     }
 
-    static public void main (String args[])
+    //static public void main (String args[])
+    static public void main (String test)
     {
         Parser parser = new Parser();
-      //  scanner = new Scanner( args[0]);
-        scanner = new Scanner( "test");
+        //scanner = new Scanner("testcases/test_mod_03_error.txt");
+        scanner = new Scanner(test);
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
         parser.parse();
@@ -75,8 +76,9 @@ public class Parser
     
     private void statementList()
     {
-        while ( currentToken.getType() == Token.ID || currentToken.getType() == Token.READ || 
-                    currentToken.getType() == Token.WRITE)
+        while ( currentToken.getType() == Token.ID || currentToken.getType() == Token.READ 
+        		|| currentToken.getType() == Token.WRITE || currentToken.getType() == Token.INTDT
+        		|| currentToken.getType() == Token.BOOLDT )
         {
             statement();
         }
@@ -93,8 +95,97 @@ public class Parser
             {
                 lValue = identifier();
                 match( Token.ASSIGNOP );
-                expr = expression();
+                
+                int dataType = currentToken.getType();
+                if (currentToken.getType() == Token.ID) {
+                	dataType = symbolTable.checkSTforType(currentToken);
+                }
+                
+                
+                if ( dataType == Token.NOT || dataType == Token.BOOL || dataType == Token.BOOLDT ) {
+                	expr = boolExpression();  
+                	lValue.expressionValueType = Token.BOOL;
+                } else {
+                    expr = expression();
+                	lValue.expressionValueType = Token.INTLITERAL;
+                }
+
                 codeFactory.generateAssignment( lValue, expr );
+                match( Token.SEMICOLON );
+                break;
+            } 
+            case Token.BOOLDT:
+            {
+            	match(Token.BOOLDT);
+                lValue = identifier();
+                lValue.expressionValueType = Token.BOOL;
+                symbolTable.addItem( lValue.expressionName, Token.BOOLDT );
+
+                switch ( currentToken.getType() )
+                {
+	                case Token.ASSIGNOP: {
+	                	match( Token.ASSIGNOP );
+	                	break;
+	                }
+	                case Token.SEMICOLON: {
+	                	match( Token.SEMICOLON );
+	                	codeFactory.generateDeclaration( lValue );
+	                	return;
+	                }
+	                default: {
+	                	// Error - What error is this?
+	                	System.out.println("ERROR - Expected a semi-colon or an assignment.");
+	                	error(currentToken);
+	                }
+                }
+                                
+                if (currentToken.getType() == Token.BOOL) {
+                	expr = bool();
+                    expr.expressionValueType = Token.BOOL;
+                } else {
+                	expr = identifier();
+                    expr.expressionValueType = Token.ID;
+                }
+
+                codeFactory.generateInitAssignment( lValue, expr );
+                match( Token.SEMICOLON );
+                break;
+            }
+            case Token.INTDT:
+            {
+            	match(Token.INTDT);
+                lValue = identifier();
+                lValue.expressionValueType = Token.INTLITERAL;
+                symbolTable.addItem( lValue.expressionName, Token.INTDT );
+                
+                switch ( currentToken.getType() )
+                {
+	                case Token.ASSIGNOP: {
+	                	match( Token.ASSIGNOP );
+	                	break;
+	                }
+	                case Token.SEMICOLON: {
+	                	match( Token.SEMICOLON );
+	                	codeFactory.generateDeclaration( lValue );
+	                	return;
+	                }
+	                default: {
+	                	// Error - What error is this?
+	                	System.out.println("ERROR - Expected a semi-colon or an assignment.");
+	                	error(currentToken);
+	                }
+                }
+                                
+                if (currentToken.getType() == Token.INTLITERAL) {
+                	match(Token.INTLITERAL);
+                    expr = processLiteral();
+                    expr.expressionValueType = Token.INTLITERAL;
+                } else {
+                	expr = identifier();
+                    //expr.expressionValueType = Token.ID;
+                }
+                
+                codeFactory.generateInitAssignment( lValue, expr );
                 match( Token.SEMICOLON );
                 break;
             }
@@ -116,6 +207,7 @@ public class Parser
                 match( Token.SEMICOLON );
                 break;
             }
+
             default: error(currentToken);
         }
     }
@@ -146,6 +238,19 @@ public class Parser
         }
     }
     
+    private void boolExpressionList()
+    {
+        Expression expr;
+        expr = boolExpression();
+        codeFactory.generateWrite(expr);
+        while ( currentToken.getType() == Token.COMMA )
+        {
+            match( Token.COMMA );
+            expr = boolExpression();
+            codeFactory.generateWrite(expr);
+        }
+    }
+    
     private Expression expression()
     {
         Expression result;
@@ -153,14 +258,39 @@ public class Parser
         Expression rightOperand;
         Operation op;
         
-        result = primary();
+        result = factor();
         while ( currentToken.getType() == Token.PLUS || currentToken.getType() == Token.MINUS )
         {
             leftOperand = result;
-            op = addOperation();
-            rightOperand = primary();
-            result = codeFactory.generateArithExpr( leftOperand, rightOperand, op );
+            op = anyOperation();
+            rightOperand = expression();
+            result = codeFactory.generateMathExpr( leftOperand, rightOperand, op );
         }
+        
+        result.expressionValueType = Token.INTLITERAL;
+        return result;
+    }
+    
+    private Expression factor() {
+        Expression result;
+        Expression leftOperand;
+        Expression rightOperand;
+        Operation op;
+        
+        result = primary();
+
+        while ( currentToken.getType() == Token.MULT || currentToken.getType() == Token.DIV  
+        		|| currentToken.getType() == Token.MOD)
+        {
+            leftOperand = result;
+            op = anyOperation();
+//            op.opType = currentToken.getType();
+//            match(op.opType);
+            rightOperand = factor();
+            result = codeFactory.generateMathExpr( leftOperand, rightOperand, op );
+        }
+        
+        result.expressionValueType = Token.INTLITERAL;
         return result;
     }
     
@@ -178,7 +308,7 @@ public class Parser
             }
             case Token.ID:
             {
-                result = identifier();
+                result = identifier();               
                 break;
             }
             case Token.INTLITERAL:
@@ -208,7 +338,8 @@ public class Parser
         return result;
     }
     
-    private Operation addOperation()
+  
+    private Operation anyOperation()
     {
         Operation op = new Operation();
         switch ( currentToken.getType() )
@@ -225,31 +356,188 @@ public class Parser
                 op = processOperation();
                 break;
             }
-            default: error( currentToken );
+            case Token.MULT:
+            {
+                match( Token.MULT ); 
+                op = processOperation();
+                break;
+            }
+            case Token.DIV:
+            {
+                match( Token.DIV ); 
+                op = processOperation();
+                break;
+            }
+            case Token.MOD:
+            {
+                match( Token.MOD ); 
+                op = processOperation();
+                break;
+            }
+            default: {
+            	// Error - Invalid addition or subtraction operation.
+            	System.out.println("ERROR - Invalid operator.");
+            	error( currentToken );
+            }
         }
         return op;
     }
     
+    
+    /* <boolExpr> -> <boolFactor> { OR <boolExpr> } */
+    private Expression boolExpression()
+    {
+        Expression result;
+        Expression leftOperand;
+        Expression rightOperand;
+        Operation op;
+        
+        result = boolFactor();
+        while ( currentToken.getType() == Token.OR ) {
+            leftOperand = result;
+            op = new Operation();
+            op.opType = Token.OR;
+            match(op.opType);
+            rightOperand = boolExpression();
+            result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
+        }
+        
+        return result;
+    }
+    
+    /* <boolFactor> -> <bool> { AND <boolFactor> } */
+    private Expression boolFactor() {
+        Expression result;
+        Expression leftOperand;
+        Expression rightOperand;
+        Operation op;
+        
+        result = bool();
+        while ( currentToken.getType() == Token.AND ) {
+            leftOperand = result;
+            
+            op = new Operation();
+            op.opType = Token.AND;  
+            match(op.opType);
+            
+            rightOperand = boolFactor();
+            result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
+        }
+        
+        return result;
+    }    
+    
+    
+    /*  <bool> -> <boolLiteral>
+     *  <bool> -> <ident>
+     *  <bool> -> NOT <boolLiteral>
+     *  <bool> -> ( <boolExpr> ) 
+     */
+    private Expression bool() {
+        Expression result = new Expression();
+        switch ( currentToken.getType() )
+        {
+            case Token.LPAREN :
+            {
+                match( Token.LPAREN );
+                result = boolExpression();
+                match( Token.RPAREN );
+                break;
+            }
+            case Token.ID:
+            {
+                result = identifier();
+                
+                if ( !validateType(Token.BOOLDT) ) {
+                	// Error - assigning a bool to the incorrect variable type
+                	// TODO: What do we do in this case?
+                	System.out.println("Error - Assigning value to incorrect data type.");
+                }
+                
+                match(Token.ID);
+                break;
+            }
+            case Token.BOOL:
+            {
+                match(Token.BOOL);
+                result = processBoolean();
+                break;
+            }
+            case Token.NOT:
+            {
+                match(Token.NOT);
+
+                if (currentToken.getType() == Token.BOOL) {
+                	match(Token.BOOL);
+                    result = processBoolean();
+                } else {                	
+                	result = new Expression( Expression.IDEXPR, currentToken.getId(), currentToken );
+                	result.expressionValueType = Token.BOOL;
+                	match(Token.ID);
+                	
+                }
+                
+                result.NOTflag = true;
+                break;
+            }
+            default: {
+            	// Error - Invalid boolean type
+            	System.out.println("ERROR - Invalid boolean type");
+            	error( currentToken );
+            	result = null;
+            }
+        }
+        
+        return result;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    /* Modified for more detailed symbol table */
     private Expression identifier()
     {
         Expression expr;
-        match( Token.ID );
-        expr = processIdentifier();
+        if (currentToken.getType() == Token.ID) {
+        	expr = processIdentifier();
+        	match( Token.ID );
+        } else {
+        	// Error - Invalid variable
+        	System.out.println("ERROR - Invalid variable.");
+        	error(currentToken);
+        	expr = null;
+        }
+        
         return expr;
     }
     
-    private void match( int tokenType)
-    {
+    
+    
+    
+    private void match( int tokenType ) {
         previousToken = currentToken;
-        if ( currentToken.getType() == tokenType )
+
+        //System.out.println("Want: " + currentToken.getType());
+        if ( currentToken.getType() == tokenType ) {
+        	if ( tokenType == Token.END ) {
+        		return;
+        	}
+        
             currentToken = scanner.findNextToken();
-        else 
+        } else 
         {
             error( tokenType );
             currentToken = scanner.findNextToken();
         }
     }
 
+    
+    
+    
     private void processSign()
     {
     	Parser.signSet = true;
@@ -261,6 +549,7 @@ public class Parser
     		Parser.signFlag = "-";
     	}
     }
+    
     private Expression processLiteral()
     {
     	Expression expr;
@@ -281,31 +570,96 @@ public class Parser
         Operation op = new Operation();
         if ( previousToken.getType() == Token.PLUS ) op.opType = Token.PLUS;
         else if ( previousToken.getType() == Token.MINUS ) op.opType = Token.MINUS;
-        else error( previousToken );
+        else if ( previousToken.getType() == Token.MULT ) op.opType = Token.MULT;
+        else if ( previousToken.getType() == Token.DIV ) op.opType = Token.DIV;
+        else if ( previousToken.getType() == Token.MOD ) op.opType = Token.MOD;
+        else {
+        	// Error - Invalid operation
+        	System.out.println("ERROR - Invalid operator.");
+        	error( previousToken );
+        }
         return op;
     }
     
-    private Expression processIdentifier()
-    {
-        Expression expr = new Expression( Expression.IDEXPR, previousToken.getId());
+    /* Modified for more detailed symbol table */
+    private Expression processIdentifier() {
+        Expression expr = new Expression( Expression.IDEXPR, currentToken.getId());
+        expr.expressionName = currentToken.getId();
         
-        if ( ! symbolTable.checkSTforItem( previousToken.getId() ) )
-        {
-            symbolTable.addItem( previousToken );
-            codeFactory.generateDeclaration( previousToken );
+        if ( !symbolTable.checkSTforItem(currentToken.getId()) ) {
+            symbolTable.addItem( currentToken, previousToken );
+        } else {
+        	if ( symbolTable.checkSTforType(currentToken) != previousToken.getType() ) {
+        		// Error - Assigning value of incorrect type
+        		//System.out.println("Error - Assigning value of incorrect type.");
+        		//error(currentToken);
+        		
+        		expr.expressionValueType = symbolTable.checkSTforType(currentToken);
+
+        	}
         }
+        
         return expr;
     }
+    
+    /* Method to check if the type assigned to a variable is that variables type */
+    private boolean validateType(int type) {        
+        if ( symbolTable.checkSTforItem(currentToken.getId()) ) {
+        	int t = symbolTable.checkSTforType(currentToken);
+        	
+        	if (t != type) {
+        		// Error - assignment to variable of incorrect type
+        		System.out.println("ERROR - Cannot assign value of type " + type + " to a variable of type " + t + ".");
+        		return false;
+        	}
+        }
+        
+        return true;
+    }    
+    
+    
+    private Expression processBoolean()
+    {
+    	Expression expr;
+    	String strValue = previousToken.getId();
+    	int intVal = 1;
+    	
+    	if (strValue.toLowerCase().equals("true")) {
+    		intVal = 1;
+    	} else {
+    		intVal = 0;	
+    	}        
+        
+    	expr = new Expression( Expression.LITERALEXPR, previousToken.getId() );
+    	expr.expressionIntValue = intVal;
+        return expr;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     private void error( Token token )
     {
         System.out.println( "Syntax error! Parsing token type " + token.toString() + " at line number " + 
                 scanner.getLineNumber() );
-        if (token.getType() == Token.ID )
-            System.out.println( "ID name: " + token.getId() );
+        
+        //if (token.getType() == Token.ID )
+        //    System.out.println( "ID name: " + token.getId() );
     }
+    
     private void error( int tokenType )
     {
-        System.out.println( "Syntax error! Parsing token type " +tokenType + " at line number " + 
+        System.out.println( "Syntax error! Parsing token type " + tokenType + " at line number " + 
                 scanner.getLineNumber() );
     }
 }
