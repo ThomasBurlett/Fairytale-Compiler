@@ -1,0 +1,4 @@
+OnceUponATime
+~b y := False;
+WRITE(y);
+TheEnd

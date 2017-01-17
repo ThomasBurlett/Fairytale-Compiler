@@ -136,6 +136,12 @@ class CodeFactory {
 
 	private void generateAssemblyCodeForWriting(String idName) {
 		if (!firstWrite) {
+			System.out.println("\t/* Clear out registers */");
+			System.out.println("\tXORL %eax, %eax");
+			System.out.println("\tXORL %ebx, %ebx");
+			System.out.println("\tXORL %ecx, %ecx");
+			System.out.println("\tXORL %edx, %edx");
+			System.out.println("");
 			
 			System.out.println("\tmovl " + idName + ",%eax");
 			System.out.println("\tpushl %eax");
@@ -164,7 +170,7 @@ class CodeFactory {
 			System.out.println("\tcall __reversePrint    /* The return address is at top of stack! */");
 			System.out.println("\tpopl  %eax    /* Remove value pushed onto the stack */");
 			System.out.println("\tjmp __writeExit");  /* Needed to jump over the reversePrint code since it was called */
-
+			
 			System.out.println("__reversePrint: ");
 			System.out.println("\t/* Save registers this method modifies */");
 			System.out.println("\tpushl %eax");
