@@ -1,0 +1,6 @@
+OnceUponATime
+~i x := 4;
+~i y := 2;
+~i r;
+r := x % r;
+TheEnd

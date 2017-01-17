@@ -15,17 +15,6 @@ public class Phase2b_Testing {
 	 * Boolean and Logical Operators
 	 */
 	
-	/*
-	@Test
-	public void test26() {
-		System.out.println("This should FAIL.\n");
-		Parser.main("testcases/test_strings_11-Error.txt");
-		
-		System.out.println("\n\n\n-------------------------------------------");
-	}
-	*/
-	
-	
 	@Test
 	public void test_bool_00() {
 		System.out.println("This should pass.\n");
@@ -74,6 +63,31 @@ public class Phase2b_Testing {
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
+	//Boolean Errors
+	@Test
+	public void test_bool_06_error() {
+		System.out.println("This should FAIL.\n");
+		Parser.main("testcases/test_bool_06_Error.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	@Test
+	public void test_bool_07_error() {
+		System.out.println("This should FAIL.\n");
+		Parser.main("testcases/test_bool_07_Error.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	@Test
+	public void test_bool_08_error() {
+		System.out.println("This should FAIL.\n");
+		Parser.main("testcases/test_bool_08_Error.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
 	/*
 	 * Multiplication
 	 */
@@ -102,9 +116,20 @@ public class Phase2b_Testing {
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
+	//Multiplication Error
+	
+	@Test
+	public void test_mul_03_error() {
+		System.out.println("This should pass.\n");
+		Parser.main("testcases/test_mul_03_error.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
 	/*
 	 * Divide
 	 */
+	
 	@Test
 	public void test_div_00() {
 		System.out.println("This should pass.\n");
@@ -117,6 +142,16 @@ public class Phase2b_Testing {
 	public void test_div_01() {
 		System.out.println("This should pass.\n");
 		Parser.main("testcases/test_div_01.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	//Error Div
+	
+	@Test
+	public void test_div_02_error() {
+		System.out.println("This should pass.\n");
+		Parser.main("testcases/test_div_02_error.txt");
 		
 		System.out.println("\n\n\n-------------------------------------------");
 	}
@@ -148,6 +183,15 @@ public class Phase2b_Testing {
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
+	//Mod Error
+	@Test
+	public void test_mod_03_error() {
+		System.out.println("This should pass.\n");
+		Parser.main("testcases/test_div_03_error.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
 	/*
 	 * Order of Operations
 	 */
@@ -164,6 +208,24 @@ public class Phase2b_Testing {
 	public void test_order_01() {
 		System.out.println("This should pass.\n");
 		Parser.main("testcases/test_order_01.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	//Order of Ops Error
+	
+	@Test
+	public void test_order_02_error() {
+		System.out.println("This should pass.\n");
+		Parser.main("testcases/test_order_02_error.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	@Test
+	public void test_order_03_error() {
+		System.out.println("This should pass.\n");
+		Parser.main("testcases/test_order_03_error.txt");
 		
 		System.out.println("\n\n\n-------------------------------------------");
 	}
