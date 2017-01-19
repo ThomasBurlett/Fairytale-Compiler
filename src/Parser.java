@@ -1,30 +1,11 @@
+import java.io.PrintStream;
 
 /* PROGRAM Micro */
 
 /* 	Java version of the Micro compiler from Chapter 2 of "Crafting a Compiler" --
 *	for distribution to instructors 
 *	Converted to Java by James Kiper in July 2003.
-*
 */
-
-/* Micro grammar
-   <program>	    -> #Start BEGIN <statement list> END
-   <statement list> -> <statement> {<statement>}
-   <statement>	    -> <ident> := <expression> #Assign ;
-   <statement>	    -> READ ( <id list> ) ;
-   <statement>	    -> WRITE ( <expr list> ) ;
-   <id list>	    -> <ident> #ReadId {, <ident> #ReadId }
-   <expr list>	    -> <expression> #WriteExpr {, <expression> #WriteExpr}
-   <expression>	    -> <primary> {<add op> <primary> #GenInfix}
-   <primary>	    -> ( <expression> )
-   <primary>	    -> <ident>
-   <primary>	    -> IntLiteral #ProcessLiteral
-   <primary>	    -> MinusOp #ProcessNegative IntLiteral #ProcessLiteral
-   <add op>	    	-> PlusOp #ProcessOp
-   <add op>	    	-> MinusOp #ProcessOp
-   <ident>	    	-> Id #ProcessId
-   <system goal>    -> <program> EofSym #Finish
- */
 
 
 public class Parser
@@ -36,21 +17,28 @@ public class Parser
     private Token previousToken;
     private static boolean signSet = false;
     private static String signFlag = "+";
-
+    
+    public static String filename; // = "test_write_01.txt";
+    public static PrintStream stdout;
     public Parser()
     {
-        
+
     }
 
-    //static public void main (String args[])
+    // static public void main (String args[])
     static public void main (String test)
     {
+    	filename = test;
+    	stdout = System.out;
         Parser parser = new Parser();
-        //scanner = new Scanner("testcases/test_mod_03_error.txt");
-        scanner = new Scanner(test);
+        //scanner = new Scanner("testcases-2/test_write_01.txt");
+        scanner = new Scanner("testcases-2/" + test);
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
         parser.parse();
+        
+        // Set output back to console
+        System.setOut(stdout);
     }
     
     public void parse()
@@ -238,18 +226,18 @@ public class Parser
         }
     }
     
-    private void boolExpressionList()
-    {
-        Expression expr;
-        expr = boolExpression();
-        codeFactory.generateWrite(expr);
-        while ( currentToken.getType() == Token.COMMA )
-        {
-            match( Token.COMMA );
-            expr = boolExpression();
-            codeFactory.generateWrite(expr);
-        }
-    }
+//    private void boolExpressionList()
+//    {
+//        Expression expr;
+//        expr = boolExpression();
+//        codeFactory.generateWrite(expr);
+//        while ( currentToken.getType() == Token.COMMA )
+//        {
+//            match( Token.COMMA );
+//            expr = boolExpression();
+//            codeFactory.generateWrite(expr);
+//        }
+//    }
     
     private Expression expression()
     {
@@ -450,7 +438,6 @@ public class Parser
                 
                 if ( !validateType(Token.BOOLDT) ) {
                 	// Error - assigning a bool to the incorrect variable type
-                	// TODO: What do we do in this case?
                 	System.out.println("Error - Assigning value to incorrect data type.");
                 }
                 

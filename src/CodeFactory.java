@@ -1,3 +1,7 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -8,18 +12,28 @@ class CodeFactory {
 	private static HashMap<String, Integer> assignedVariables;
 
 	private static int labelCount = 0;
-	private static boolean firstWrite = true;
+	public static boolean firstWrite = true;
 
 	public CodeFactory() {
 		tempCount = 0;
 		intVariablesList = new ArrayList<String>();
 		boolVariablesList = new ArrayList<String>();
 		assignedVariables = new HashMap<>();
+		    
+		String testcase = Parser.filename;
+		String outputFile = "AssemblyCode/" + testcase.substring(0, testcase.length() - 4) + ".s";		
+		
+		// Create Assembly File
+		try {
+	    	File file = new File(outputFile);
+	    	FileOutputStream FOS = new FileOutputStream(file);
+	    	PrintStream out = new PrintStream(FOS);
+	    	System.setOut(out);
+		} catch (FileNotFoundException e) {
+			System.out.print("Error creating file.");
+			// e.printStackTrace();
+		}
 	}
-
-//	void generateDeclaration(Token token) {
-//		variablesList.add(token.getId());
-//	}
 	
 	void generateDeclaration( Expression variable ) {
 		String var = variable.expressionName;
