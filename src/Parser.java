@@ -290,48 +290,48 @@ public class Parser
             case Token.IF : {	// WORKS
             	// <statement> 	-> IF <conditional> . <statement list> ENDIF 
             	match(Token.IF);
-            	
+            	int count = CodeFactory.createIfCount();
             	match(Token.LPAREN);
         		expr = conditional(); 	// 1 if true, 0 if false 
         		
+        	 	System.out.println("\tXORL %eax, %eax");
+        	 	System.out.println("\tXORL %ebx, %ebx");
+        	 	System.out.println("\tMOVL " + expr.expressionName + ", %eax");
+        	 	System.out.println("\tMOVL $1, %ebx");
+        		System.out.println("\tCMP %eax, %ebx");
+        		System.out.println("\tJNE ENDIF_" + count);
+                CodeFactory.orCount++;
+                
         		match(Token.RPAREN);
         		match(Token.DOT);
         		statementList();
             	match(Token.ENDIF);
+        		System.out.println("\nENDIF_" + count + ":");
             	
         		return;
             }
             case Token.IFE : {
             	// <statement> 	-> IFe <conditional> . <statement list> ELSE <statement list> ENDIF
-            	match(Token.IFE);
-            	int count = CodeFactory.createIfCount();
-            	
-            	match(Token.LPAREN);
-        		expr = conditional(); 	// 1 if true, 0 if false 
-        		
-        		match(Token.RPAREN);
-        		match(Token.DOT);
-        		
-        		statementList();
-        		
-        		match(Token.ELSE); 
-        		System.out.println("\tJMP ENDIF_" + count + "\n");
-        		System.out.println("ELSE_" + count + ":");
-        		statementList();
-        		
-        		System.out.println("\nENDIF_" + count + ":");
-            	match(Token.ENDIF);
+//            	match(Token.IFE);
+//            	int count = CodeFactory.createIfCount();
+//            	
+//            	match(Token.LPAREN);
+//        		expr = conditional(); 	// 1 if true, 0 if false 
+//        		
+//        		match(Token.RPAREN);
+//        		match(Token.DOT);
+//        		
+//        		statementList();
+//        		
+//        		match(Token.ELSE); 
+//        		System.out.println("\tJMP ENDIF_" + count + "\n");
+//        		System.out.println("ELSE_" + count + ":");
+//        		statementList();
+//        		
+//        		System.out.println("\nENDIF_" + count + ":");
+//            	match(Token.ENDIF);
             	
         		return;
-            	
-            	
-            	
-            	
-            	
-            	
-            	
-            	
-            	
             }
             default: error(currentToken);
         } 
@@ -382,9 +382,13 @@ public class Parser
             match(op.opType);
             
             rightOperand = conditional();
+    	 	System.out.println("OR_" + CodeFactory.orCount + ":");
+            CodeFactory.orCount++;
             result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
         }
-        
+      
+	 	System.out.println("OR_" + CodeFactory.orCount + ":");
+        CodeFactory.orCount++;
         return result;
     }
     
@@ -404,13 +408,18 @@ public class Parser
             leftOperand = result;
             
             op = new Operation();
-            op.opType = Token.AND;  
+            op.opType = Token.AND;
             match(op.opType);
             
             rightOperand = condFactor();
+            
+            System.out.println("AND_" + CodeFactory.andCount + ":");
+            CodeFactory.andCount++;
             result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
         }
         
+        System.out.println("AND_" + CodeFactory.andCount + ":");
+        CodeFactory.andCount++;
         return result;
     }    
     
@@ -439,11 +448,15 @@ public class Parser
 			rightOperand = expression();
 			match(Token.RPAREN);
 			
+			// bring together 
 			result = CodeFactory.comparisonStatement(leftOperand, op, rightOperand);
 		}
 		
 		return result;
     }
+    
+    
+    
     
     
     private Expression expression()

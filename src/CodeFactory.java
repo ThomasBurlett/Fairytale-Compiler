@@ -9,6 +9,8 @@ class CodeFactory {
 	private static int tempCount;
 	private static int loopCount;
 	private static int ifCount;
+	public static int orCount;
+	public static int andCount;
 	public static ArrayList<String> intVariablesList;
 	public static ArrayList<String> boolVariablesList;
 	private static HashMap<String, Integer> assignedVariables;
@@ -69,10 +71,10 @@ class CodeFactory {
 		
 		if (op.opType == Token.PLUS) {
 			// ADDITION
-			System.out.println("\tADD %ebx, %eax");
+			System.out.println("\tADDL %ebx, %eax");
 		} else if (op.opType == Token.MINUS) {
 			// SUBTRACTION
-			System.out.println("\tSUB %ebx, %eax");
+			System.out.println("\tSUBL %ebx, %eax");
 		} else if (op.opType == Token.MULT) {
 			// MULTIPLICATION
 			System.out.println("\tIMULL %ebx");
@@ -128,12 +130,15 @@ class CodeFactory {
 		if (op.opType == Token.AND) {
 			System.out.println("\t/* Generate AND expression */");
 			System.out.println("\tANDL %ebx, %eax");	
+			System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);
+			System.out.println("\tJMP OR_" + orCount);
 		} else if (op.opType == Token.OR) {
 			System.out.println("\t/* Generate OR expression */");
 			System.out.println("\tORL %ebx, %eax");
+			System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);			
 		}
 		
-		System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);
+
 		return tempExpr;
 	}
 	
@@ -171,7 +176,7 @@ class CodeFactory {
 		System.out.println("\tXORL %eax, %eax");
 		System.out.println("\tXORL %ebx, %ebx \n");
 
-		System.out.println("\t/* Compare the two variables */");
+		System.out.println("\t/* Compare the variables */");
 
 		// Put left into EAX 
 		if (left.expressionType == Expression.LITERALEXPR) {
@@ -195,11 +200,12 @@ class CodeFactory {
 		System.out.println("\tXORL %ecx, %ecx");
 		System.out.println("\tMOVL $1, %ecx");
 		System.out.println("\tMOVL %ecx, " + tempExpr.expressionName);
-		System.out.println("\tXORL %ecx, %ecx \n");
-		
+		System.out.println("\tXORL %ecx, %ecx");
+			 	
 		// Else, tempExpr will stay 0
 		System.out.println("_" + tempExpr.expressionName + ": ");
 		
+	 	System.out.println("\tJMP AND_" + andCount + "\n");
 		return tempExpr;
 	}
 	
@@ -276,7 +282,7 @@ class CodeFactory {
 			
 			String nonzeroPrintLabel = generateLabel("__nonzeroPrint");
 			System.out.println("\tcmpl $0, %eax");
-			System.out.println("jne " + nonzeroPrintLabel);
+			System.out.println("\tjne " + nonzeroPrintLabel);
 			System.out.println("\tpush $'0'");
 			System.out.println("\tmovl $4, %eax       /* The system call for write (sys_write) */");
 			System.out.println("\tmovl $1, %ebx       /* File descriptor 1 - standard output */");
@@ -304,8 +310,8 @@ class CodeFactory {
 			System.out.println("\tmovl $4, %eax        	/* The system call for write (sys_write) */");
 			System.out.println("\tmovl $1, %ebx       	/* File descriptor 1 - standard output */");
 			System.out.println("\tmovl $1, %edx     	/* Place number of characters to display */");
-			System.out.println("\tmovl $__minus, %ecx   /* Put effective address of stack into ecx */");
-			System.out.println("\tint $0x80	    		/* Call to the Linux OS */");
+			System.out.println("\tmovl $__minus, %ecx	/* Put effective address of stack into ecx */");
+			System.out.println("\tint $0x80				/* Call to the Linux OS */");
 			
 			System.out.println("\t__positive:");
 			System.out.println("\txorl %eax, %eax       /* eax = 0 */");
@@ -353,7 +359,7 @@ class CodeFactory {
 			System.out.println("\tpopl %ebx");
 			System.out.println("\tpopl %ecx");
 			System.out.println("\tpopl %edx");
-			System.out.println("\t popl %eax");
+			System.out.println("\tpopl %eax");
 
 			System.out.println("\tret");
 			System.out.println("__writeExit:");
@@ -499,9 +505,11 @@ class CodeFactory {
 		}
 	}
 	
+	
 	void generateStart() {
 		System.out.println(".text\n.global _start\n\n_start:\n");
 	}
+	
 
 	void generateExit() {
 		System.out.println("\nexit:");
@@ -510,6 +518,7 @@ class CodeFactory {
 		System.out.println("\tint $0x80");
 	}
 
+	
 	public void generateData() {
 		System.out.println("\n\n.data");
 		
