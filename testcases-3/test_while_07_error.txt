@@ -1,0 +1,6 @@
+OnceUponATime
+~i x := 0;
+LOOP ( x < 5 ).
+x := x + 1;
+WRITE(x);
+TheEnd

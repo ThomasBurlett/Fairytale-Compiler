@@ -1,0 +1,12 @@
+OnceUponATime
+~i x := 0;
+~i y := 0;
+LOOP 5.
+LOOP 3.
+x := x + 1;
+y := y + 1;
+DeLOOP
+DeLOOP
+WRITE(x);
+WRITE(y);
+TheEnd

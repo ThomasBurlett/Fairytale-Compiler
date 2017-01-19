@@ -1,0 +1,6 @@
+OnceUponATime
+~i x := 5;
+IFe x > 2 .
+x := x + 5;
+ENDIF
+TheEnd
