@@ -18,27 +18,35 @@ public class Parser
     private static boolean signSet = false;
     private static String signFlag = "+";
     
+    private final String UNDECLARED = "ERROR - Undeclared variable.";
+    private final String INCORRECTTYPE = "ERROR - Incorrect assignment type.";
+    private final String INVALIDTOKEN = "ERROR - Invalid token.";
+    
+    
     public static String filename; // = "test_write_01.txt";
     public static PrintStream stdout;
+    
     public Parser()
     {
 
     }
 
-    //static public void main (String args[])
-    static public void main (String test)
-    {
-    	filename = test;
-    	stdout = System.out;
-        Parser parser = new Parser();
-        //scanner = new Scanner("testcases-2/test_bool_08_error.txt");
-        scanner = new Scanner("testcases-2/" + test);
+    static public void main (String args[]) {	// Uncomment for debugging
+//    static public void main (String test) { 	// Uncomment for JUnit
+//    	filename = test;
+//    	stdout = System.out;
+//        Parser parser = new Parser();
+//        scanner = new Scanner("testcases-2/" + test);
+
+        Parser parser = new Parser();									// Uncomment for debugging
+        scanner = new Scanner("testcases/test.txt");
+        
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
         parser.parse();
         
-        // Set output back to console
-        System.setOut(stdout);
+//        // Set output back to console	
+//        System.setOut(stdout);			// Uncomment for JUnit
     }
     
     public void parse()
@@ -66,7 +74,8 @@ public class Parser
     {
         while ( currentToken.getType() == Token.ID || currentToken.getType() == Token.READ 
         		|| currentToken.getType() == Token.WRITE || currentToken.getType() == Token.INTDT
-        		|| currentToken.getType() == Token.BOOLDT )
+        		|| currentToken.getType() == Token.BOOLDT ||  currentToken.getType() == Token.LOOP
+        		|| currentToken.getType() == Token.IF || currentToken.getType() == Token.IFE )
         {
             statement();
         }
@@ -89,7 +98,6 @@ public class Parser
                 	dataType = symbolTable.checkSTforType(currentToken);
                 }
                 
-                
                 if ( dataType == Token.NOT || dataType == Token.BOOL || dataType == Token.BOOLDT ) {
                 	expr = boolExpression();  
                 	lValue.expressionValueType = Token.BOOL;
@@ -106,7 +114,6 @@ public class Parser
             {
             	match(Token.BOOLDT);
                 lValue = identifier();
-                // System.out.println(lValue.expressionIntValue + " " + lValue.expressionName + " " + lValue.expressionType + " " + lValue.expressionValueType);
                 
                 lValue.expressionValueType = Token.BOOL;
                 symbolTable.addItem( lValue.expressionName, Token.BOOL );
@@ -123,8 +130,8 @@ public class Parser
 	                	return;
 	                }
 	                default: {
-	                	// Error - What error is this?
-	                	System.out.println("ERROR - Expected a semi-colon or an assignment.");
+	                	// Error - Expected semi-colon or an assignment.
+	                	System.out.println(INVALIDTOKEN + " Expected a semi-colon or an assignment.");
 	                	error(currentToken);
 	                }
                 }
@@ -135,11 +142,10 @@ public class Parser
                     expr.expressionType = Expression.LITERALEXPR;
                 } else if (currentToken.getType() == Token.ID) {
                 	expr = identifier();
-                    //System.out.println(lValue.expressionIntValue + " " + lValue.expressionName + " " + lValue.expressionType + " " + lValue.expressionValueType);
                     expr.expressionValueType = Token.ID;
                 } else {
                 	// Error - Incorrect assignment type
-                	System.out.println("ERROR - Incorrect assignment type.");
+                	System.out.println(INCORRECTTYPE);
                 	expr = identifier();
                     expr.expressionValueType = Token.ID;
                 }
@@ -168,7 +174,7 @@ public class Parser
 	                }
 	                default: {
 	                	// Error - What error is this?
-	                	System.out.println("ERROR - Expected a semi-colon or an assignment.");
+	                	System.out.println(INVALIDTOKEN + " Expected a semi-colon or an assignment.");
 	                	error(currentToken);
 	                }
                 }
@@ -204,10 +210,133 @@ public class Parser
                 match( Token.SEMICOLON );
                 break;
             }
+            case Token.LOOP : {	
+            	
+            	match(Token.LOOP);
+            	int loopCount = CodeFactory.printLoop();
+            	
+            	switch (currentToken.getType()) { //TODO Not working
+	            	case Token.LPAREN : {
+	            		// LOOP ( <conditional> ) . <statement list> DeLOOP #WhileLoop  
+	            		match(Token.LPAREN);
 
+	            		// Conditional
+	            		expr = conditional(); 		// 1 if true, 0 if false 		
+	            		match(Token.RPAREN);
+	            		
+	            		CodeFactory.loopExtension(expr, loopCount);
+	            		
+	            		match(Token.DOT);
+	            		statementList();
+	            		
+	            		// DeLoop
+	            		match(Token.DELOOP);
+	            		CodeFactory.quitLoopCond(loopCount);
+	            			            		
+	            		return;
+	            	}
+        			case Token.INTLITERAL : {	// Works
+	            		// LOOP <intLiteral> . <statement list> DeLOOP #LoopNumTimes
+	            		expr = new Expression(Expression.LITERALEXPR, Integer.parseInt(currentToken.getId()));
+	            		expr.expressionValueType = Token.INTLITERAL;
+	            		match(Token.INTLITERAL);
+	            		CodeFactory.generateBeginIntLoop(expr, loopCount);
+	            		
+	            		match(Token.DOT);
+	            		statementList();
+	            		
+	            		match(Token.DELOOP);
+	            		CodeFactory.printDeLoop(loopCount);
+	            		return;
+        			}
+        			case Token.ID : {	// Works
+	            		expr = new Expression(Expression.IDEXPR , currentToken.getId());
+	            		
+	            		if (CodeFactory.intVariablesList.contains(currentToken.getId())) {
+		            		expr.expressionValueType = Token.INTLITERAL;
+		            		match(Token.ID);
+		            		CodeFactory.generateBeginIntLoop(expr, loopCount);
+		            		
+		            		match(Token.DOT);
+		                	statementList();            	
+		                	
+		                	match(Token.DELOOP);
+		                	CodeFactory.printDeLoop(loopCount);
+		                	return;
+	            		} else {
+	            			// Error
+	            			if ( !symbolTable.checkSTforItem(currentToken.getId())) {
+	            				// Error - undeclared variable
+	            				System.out.println(UNDECLARED);
+	            				error(currentToken);
+	            			} else {
+	            				// Error - variable is the wrong type
+	            				System.out.println(INCORRECTTYPE);
+	            				error(currentToken);
+	            			}
+	            		}
+	            		break;
+        			}       	
+	            	default: {
+	            		// Error - Incorrect conditional for loop. Must be conditional or a number.
+	            		System.out.println(INVALIDTOKEN + " Expected a conditional or a number.");
+	            		error(currentToken);
+	            		expr = new Expression();
+	            		break;
+	            	}
+        		}
+            	break;
+            }
+            case Token.IF : {	// WORKS
+            	// <statement> 	-> IF <conditional> . <statement list> ENDIF 
+            	match(Token.IF);
+            	
+            	match(Token.LPAREN);
+        		expr = conditional(); 	// 1 if true, 0 if false 
+        		
+        		match(Token.RPAREN);
+        		match(Token.DOT);
+        		statementList();
+            	match(Token.ENDIF);
+            	
+        		return;
+            }
+            case Token.IFE : {
+            	// <statement> 	-> IFe <conditional> . <statement list> ELSE <statement list> ENDIF
+            	match(Token.IFE);
+            	int count = CodeFactory.createIfCount();
+            	
+            	match(Token.LPAREN);
+        		expr = conditional(); 	// 1 if true, 0 if false 
+        		
+        		match(Token.RPAREN);
+        		match(Token.DOT);
+        		
+        		statementList();
+        		
+        		match(Token.ELSE); 
+        		System.out.println("\tJMP ENDIF_" + count + "\n");
+        		System.out.println("ELSE_" + count + ":");
+        		statementList();
+        		
+        		System.out.println("\nENDIF_" + count + ":");
+            	match(Token.ENDIF);
+            	
+        		return;
+            	
+            	
+            	
+            	
+            	
+            	
+            	
+            	
+            	
+            }
             default: error(currentToken);
-        }
+        } 
     }
+    
     
     private void idList()
     {
@@ -234,19 +363,88 @@ public class Parser
             codeFactory.generateWrite(expr);
         }
     }
+   
     
-//    private void boolExpressionList()
-//    {
-//        Expression expr;
-//        expr = boolExpression();
-//        codeFactory.generateWrite(expr);
-//        while ( currentToken.getType() == Token.COMMA )
-//        {
-//            match( Token.COMMA );
-//            expr = boolExpression();
-//            codeFactory.generateWrite(expr);
-//        }
-//    }
+    // -> <condFactor> 
+    // -> <condFactor> OR <conditional> 
+    private Expression conditional()
+    {
+        Expression result;
+        Expression leftOperand;
+        Expression rightOperand;
+        Operation op;
+        
+        result = condFactor();
+        while ( currentToken.getType() == Token.OR ) {
+            leftOperand = result;
+            op = new Operation();
+            op.opType = Token.OR;
+            match(op.opType);
+            
+            rightOperand = conditional();
+            result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
+        }
+        
+        return result;
+    }
+    
+    /* 
+	 * ->  <condStatement> 
+	 * ->  <condStatement> AND <condFactor>
+     */
+    private Expression condFactor() {
+        Expression result;
+        Expression leftOperand;
+        Expression rightOperand;
+        Operation op;
+        
+        result = condStatement();
+                
+        while ( currentToken.getType() == Token.AND ) {
+            leftOperand = result;
+            
+            op = new Operation();
+            op.opType = Token.AND;  
+            match(op.opType);
+            
+            rightOperand = condFactor();
+            result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
+        }
+        
+        return result;
+    }    
+    
+    /*
+     *  -> ( <conditional> ) 
+     *  -> ( <expression> ) <comparison> ( <expression> ) 
+     */
+    private Expression condStatement() {
+    	// ( <expression> ) <comparison> ( <expression> )
+    	Expression result;	
+        Expression leftOperand;
+        Expression rightOperand;
+        Operation op;
+		
+		match(Token.LPAREN);
+		
+		if (currentToken.getType() == Token.LPAREN) {
+			result = primary();
+		} else {
+			leftOperand = expression();
+			match(Token.RPAREN);
+			
+			op = comparison();
+			
+			match(Token.LPAREN);
+			rightOperand = expression();
+			match(Token.RPAREN);
+			
+			result = CodeFactory.comparisonStatement(leftOperand, op, rightOperand);
+		}
+		
+		return result;
+    }
+    
     
     private Expression expression()
     {
@@ -281,8 +479,6 @@ public class Parser
         {
             leftOperand = result;
             op = anyOperation();
-//            op.opType = currentToken.getType();
-//            match(op.opType);
             rightOperand = factor();
             result = codeFactory.generateMathExpr( leftOperand, rightOperand, op );
         }
@@ -330,12 +526,16 @@ public class Parser
                 result = processLiteral();
                 break;
             }
-            default: error( currentToken );
+            default: {
+            	// Error
+            	System.out.println(INVALIDTOKEN);
+            	error( currentToken );
+            }
         }
         return result;
     }
+
     
-  
     private Operation anyOperation()
     {
         Operation op = new Operation();
@@ -373,7 +573,7 @@ public class Parser
             }
             default: {
             	// Error - Invalid addition or subtraction operation.
-            	System.out.println("ERROR - Invalid operator.");
+            	System.out.println(INVALIDTOKEN);
             	error( currentToken );
             }
         }
@@ -395,6 +595,8 @@ public class Parser
             op = new Operation();
             op.opType = Token.OR;
             match(op.opType);
+            
+            CodeFactory.printLoop();
             rightOperand = boolExpression();
             result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
         }
@@ -410,6 +612,7 @@ public class Parser
         Operation op;
         
         result = bool();
+        
         while ( currentToken.getType() == Token.AND ) {
             leftOperand = result;
             
@@ -435,10 +638,11 @@ public class Parser
         switch ( currentToken.getType() )
         {
             case Token.LPAREN :
-            {
+            {           	
                 match( Token.LPAREN );
                 result = boolExpression();
                 match( Token.RPAREN );
+            	
                 break;
             }
             case Token.ID:
@@ -447,7 +651,7 @@ public class Parser
                 
                 if ( !validateType(Token.BOOLDT) ) {
                 	// Error - assigning a bool to the incorrect variable type
-                	System.out.println("Error - Assigning value to incorrect data type.");
+                	System.out.println(INCORRECTTYPE);
                 }
                 
                 match(Token.ID);
@@ -478,7 +682,7 @@ public class Parser
             }
             default: {
             	// Error - Invalid boolean type
-            	System.out.println("ERROR - Invalid boolean type");
+            	System.out.println(INCORRECTTYPE);
             	error( currentToken );
             	result = null;
             }
@@ -487,11 +691,68 @@ public class Parser
         return result;
     }
     
-    
-    
-    
-    
-    
+
+    private Operation comparison() {
+    	Operation op = new Operation();
+        switch ( currentToken.getType() )
+        {
+            case Token.EE:
+            {
+                match( Token.EE ); 
+                op = new Operation();
+                op.opType = Token.EE;                
+                op.jump = "JNE";
+                break;
+            }
+            case Token.NE:
+            {
+                match( Token.NE ); 
+                op = new Operation();
+                op.opType = Token.NE;
+                op.jump = "JE";
+                break;
+            }
+            case Token.LT:
+            {
+                match( Token.LT ); 
+                op = new Operation();
+                op.opType = Token.LT;
+                op.jump = "JNL";
+                break;
+            }
+            case Token.LE:
+            {
+                match( Token.LE ); 
+                op = new Operation();
+                op.opType = Token.LE;
+                op.jump = "JG";
+                break;
+            }
+            case Token.GE:
+            {
+                match( Token.GE ); 
+                op = new Operation();
+                op.opType = Token.GE;
+                op.jump = "JL";
+                break;
+            }
+            case Token.GT:
+            {
+                match( Token.GT ); 
+                op = new Operation();
+                op.opType = Token.GT;
+                op.jump = "JNG";
+                break;
+            }
+            default: {
+            	// Error - Invalid comparison
+            	System.out.println(INVALIDTOKEN + " Comparison.");
+            	error( currentToken );
+            }
+        }
+        return op;
+    	
+    }
     
     
     /* Modified for more detailed symbol table */
@@ -580,7 +841,7 @@ public class Parser
     /* Modified for more detailed symbol table */
     private Expression processIdentifier() {
         Expression expr = new Expression( Expression.IDEXPR, currentToken.getId());
-        expr.expressionName = currentToken.getId();
+//        expr.expressionName = currentToken.getId();
         
         if ( !symbolTable.checkSTforItem(currentToken.getId()) ) {
             symbolTable.addItem( currentToken, previousToken );

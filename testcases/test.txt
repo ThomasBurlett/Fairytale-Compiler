@@ -1,0 +1,8 @@
+OnceUponATime
+~i x := 0;
+~i y := 2;
+IF ( (y) != (x) ) .
+x := x + 1;
+ENDIF
+WRITE(x);
+TheEnd

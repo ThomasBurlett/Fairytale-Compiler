@@ -7,8 +7,10 @@ import java.util.HashMap;
 
 class CodeFactory {
 	private static int tempCount;
-	private static ArrayList<String> intVariablesList;
-	private static ArrayList<String> boolVariablesList;
+	private static int loopCount;
+	private static int ifCount;
+	public static ArrayList<String> intVariablesList;
+	public static ArrayList<String> boolVariablesList;
 	private static HashMap<String, Integer> assignedVariables;
 
 	private static int labelCount = 0;
@@ -20,33 +22,32 @@ class CodeFactory {
 		boolVariablesList = new ArrayList<String>();
 		assignedVariables = new HashMap<>();
 		    
-		String testcase = Parser.filename;
-		String outputFile = "AssemblyCode/" + testcase.substring(0, testcase.length() - 4) + ".s";		
-		
-		// Create Assembly File
-		try {
-	    	File file = new File(outputFile);
-	    	FileOutputStream FOS = new FileOutputStream(file);
-	    	PrintStream out = new PrintStream(FOS);
-	    	System.setOut(out);
-		} catch (FileNotFoundException e) {
-			System.out.print("Error creating file.");
-			// e.printStackTrace();
-		}
+		// Uncomment for JUnit
+//		String testcase = Parser.filename;
+//		String outputFile = "AssemblyCode/" + testcase.substring(0, testcase.length() - 4) + ".s";		
+//		
+//		// Create Assembly File
+//		try {
+//	    	File file = new File(outputFile);
+//	    	FileOutputStream FOS = new FileOutputStream(file);
+//	    	PrintStream out = new PrintStream(FOS);
+//	    	System.setOut(out);
+//		} catch (FileNotFoundException e) {
+//			System.out.print("Error creating file.");
+//			// e.printStackTrace();
+//		}
 	}
 	
 	void generateDeclaration( Expression variable ) {
 		String var = variable.expressionName;
 		int type = variable.expressionValueType;
 		
-		//System.out.println(type);
 		if ( type == Token.INTLITERAL ) {
 			intVariablesList.add(var);
 		} else if ( type == Token.BOOL ) {
 			boolVariablesList.add(var);
 		}
 	}
-	
 
 	Expression generateMathExpr(Expression left, Expression right, Operation op) {
 		Expression tempExpr = new Expression(Expression.TEMPEXPR, createIntTempName());
@@ -87,11 +88,10 @@ class CodeFactory {
 			System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);
 		}
 		
+		System.out.println("");
+		
 		return tempExpr;
 	}
-	
-	
-	
 	
 	/* Generate OR / AND boolean expressions */
 	Expression generateBoolExpr(Expression left, Expression right, Operation op) {
@@ -100,7 +100,7 @@ class CodeFactory {
 		//if (left.expressionName)
 		System.out.println("\t/* Clear out EAX and EBX registers */");
 		System.out.println("\tXORL %eax, %eax");
-		System.out.println("\tXORL %ebx, %ebx");
+		System.out.println("\tXORL %ebx, %ebx \n");
 		
 		// Process left expression
 		if (left.expressionType == Expression.LITERALEXPR) {
@@ -137,12 +137,113 @@ class CodeFactory {
 		return tempExpr;
 	}
 	
+	/* LOOP */
+	static int printLoop() {
+		int count = createLoopCount();
+		System.out.println("LOOP_" + count + ":");
+		return count;
+	}
+	
+	
+	/* LOOP # */
+	static void printDeLoop(int count) {
+		System.out.println("\tADDL $1, LpCt_" + count + "");		
+		System.out.println("\tJMP  LOOP_" + count + "\n");		
+
+		System.out.println("DELOOP_" + count + ":");		
+	}
+	
+	
+	/* LOOP ( <cond> )*/
+	public static void quitLoopCond(int count) {
+		System.out.println("\tJMP  LOOP_" + count + "\n");		
+
+		System.out.println("DELOOP_" + count + ":");
+		System.out.println("\tXORL %eax, %eax");
+	}
+	
+	
+	public static Expression comparisonStatement(Expression left, Operation op, Expression right) {
+		Expression tempExpr = new Expression(Expression.TEMPEXPR, createBoolTempName());
+		
+		// Clear out EAX and EBX
+		System.out.println("\t/* Clear out EAX, EBX */");
+		System.out.println("\tXORL %eax, %eax");
+		System.out.println("\tXORL %ebx, %ebx \n");
+
+		System.out.println("\t/* Compare the two variables */");
+
+		// Put left into EAX 
+		if (left.expressionType == Expression.LITERALEXPR) {
+			System.out.println("\tMOVL $" + left.expressionIntValue + ", %eax");
+		} else {
+			System.out.println("\tMOVL " + left.expressionName + ", %eax");
+		}
+		
+		// Put right into EBX
+		if (right.expressionType == Expression.LITERALEXPR) {
+			System.out.println("\tMOVL $" + right.expressionIntValue + ", %ebx");
+		} else {
+			System.out.println("\tMOVL " + right.expressionName + ", %ebx");
+		}
+		
+		System.out.println("\tCMP  %eax, %ebx");
+		System.out.println("\t" + op.jump + "  _" + tempExpr.expressionName);
+		
+		// If true, move 1 into tempExpr
+		System.out.println("\n\t/* Set " + tempExpr.expressionName + " to True */");
+		System.out.println("\tXORL %ecx, %ecx");
+		System.out.println("\tMOVL $1, %ecx");
+		System.out.println("\tMOVL %ecx, " + tempExpr.expressionName);
+		System.out.println("\tXORL %ecx, %ecx \n");
+		
+		// Else, tempExpr will stay 0
+		System.out.println("_" + tempExpr.expressionName + ": ");
+		
+		return tempExpr;
+	}
+	
+	
+	// Allows for code reuse with conditionals
+	static void loopExtension(Expression temp, int count) {
+		System.out.println("\tCMP  $1, %eax");
+		System.out.println("\tJNE  DELOOP_" + count + "\n");
+	}
+	
+	
+	static Expression generateBeginIntLoop(Expression expr, int count) {
+		String loopVar = "LpCt_" + Integer.toString(count);
+		Expression loopExpr = new Expression(Expression.TEMPEXPR, loopVar);
+		
+		intVariablesList.add(loopVar); // lpCt_# = 0
+		
+		// Clear out EAX
+		System.out.println("\t/* Clear out EAX */");
+		System.out.println("\tXORL %eax, %eax");
+		
+		// Put LpCt into EAX
+		System.out.println("\tMOVL " + loopVar + ", %eax");
+		
+		// Compare expression value to LpCt
+		if (expr.expressionType == Expression.LITERALEXPR) {
+			System.out.println("\tCMP $" + expr.expressionIntValue + ", %eax");
+		} else {
+			System.out.println("\tCMP " + expr.expressionName + ", %eax");
+		}
+		
+		// Quit loop
+		System.out.println("\tJE  DELOOP_" + count);
+
+		return loopExpr;
+	}
 	
 	
 	
 	void generateWrite(Expression expr) {
 		switch (expr.expressionType) {
-		case Expression.IDEXPR:
+			case Expression.IDEXPR: {
+				generateAssemblyCodeForWriting(expr.expressionName);
+			}
 			case Expression.TEMPEXPR: {
 				generateAssemblyCodeForWriting(expr.expressionName);
 				break;
@@ -165,7 +266,7 @@ class CodeFactory {
 			System.out.println("\tmovl " + idName + ",%eax");
 			System.out.println("\tpushl %eax");
 			System.out.println("\tcall __reversePrint    /* The return address is at top of stack! */");
-			System.out.println("\tpopl  %eax    /* Remove value pushed onto the stack */");
+			System.out.println("\tpopl  %eax    		 /* Remove value pushed onto the stack */");
 			
 		} else
 		{
@@ -179,16 +280,16 @@ class CodeFactory {
 			System.out.println("\tpush $'0'");
 			System.out.println("\tmovl $4, %eax       /* The system call for write (sys_write) */");
 			System.out.println("\tmovl $1, %ebx       /* File descriptor 1 - standard output */");
-			System.out.println("\tmovl $1, %edx     /* Place number of characters to display */");
+			System.out.println("\tmovl $1, %edx       /* Place number of characters to display */");
 			System.out.println("\tleal (%esp), %ecx   /* Put effective address of zero into ecx */");
-			System.out.println("\tint $0x80	    /* Call to the Linux OS */");
+			System.out.println("\tint $0x80	    	  /* Call to the Linux OS */");
 			System.out.println("popl %eax");
-			System.out.println("\tjmp __writeExit   /* Needed to jump over the reversePrint code since we printed the zero */ ");
+			System.out.println("\tjmp __writeExit     /* Needed to jump over the reversePrint code since we printed the zero */ ");
 			System.out.println(nonzeroPrintLabel + ":");
 			System.out.println("\tpushl %eax");
-			System.out.println("\tcall __reversePrint    /* The return address is at top of stack! */");
-			System.out.println("\tpopl  %eax    /* Remove value pushed onto the stack */");
-			System.out.println("\tjmp __writeExit");  /* Needed to jump over the reversePrint code since it was called */
+			System.out.println("\tcall __reversePrint  /* The return address is at top of stack! */");
+			System.out.println("\tpopl  %eax    	   /* Remove value pushed onto the stack */");
+			System.out.println("\tjmp __writeExit  	   /* Needed to jump over the reversePrint code since it was called */");
 			
 			System.out.println("__reversePrint: ");
 			System.out.println("\t/* Save registers this method modifies */");
@@ -200,11 +301,11 @@ class CodeFactory {
 			System.out.println("\tcmpw $0, 20(%esp)");
 			System.out.println("\tjge __positive");
 			System.out.println("\t/* Display minus on console */");
-			System.out.println("\tmovl $4, %eax       /* The system call for write (sys_write) */");
-			System.out.println("\tmovl $1, %ebx       /* File descriptor 1 - standard output */");
-			System.out.println("\tmovl $1, %edx     /* Place number of characters to display */");
+			System.out.println("\tmovl $4, %eax        	/* The system call for write (sys_write) */");
+			System.out.println("\tmovl $1, %ebx       	/* File descriptor 1 - standard output */");
+			System.out.println("\tmovl $1, %edx     	/* Place number of characters to display */");
 			System.out.println("\tmovl $__minus, %ecx   /* Put effective address of stack into ecx */");
-			System.out.println("\tint $0x80	    /* Call to the Linux OS */");
+			System.out.println("\tint $0x80	    		/* Call to the Linux OS */");
 			
 			System.out.println("\t__positive:");
 			System.out.println("\txorl %eax, %eax       /* eax = 0 */");
@@ -241,11 +342,11 @@ class CodeFactory {
 
 			System.out.println("\t/* Display characters on _stack_ on console */");
 
-			System.out.println("\tmovl $4, %eax       /* The system call for write (sys_write) */");
-			System.out.println("\tmovl $1, %ebx       /* File descriptor 1 - standard output */");
-			System.out.println("\tmovl %ecx, %edx     /* Place number of characters to display */");
-			System.out.println("\tleal (%esp), %ecx   /* Put effective address of stack into ecx */");
-			System.out.println("\tint $0x80	    /* Call to the Linux OS */");
+			System.out.println("\tmovl $4, %eax      	/* The system call for write (sys_write) */");
+			System.out.println("\tmovl $1, %ebx       	/* File descriptor 1 - standard output */");
+			System.out.println("\tmovl %ecx, %edx     	/* Place number of characters to display */");
+			System.out.println("\tleal (%esp), %ecx   	/* Put effective address of stack into ecx */");
+			System.out.println("\tint $0x80	    		/* Call to the Linux OS */");
 
 			System.out.println("\t /* Clean up data and registers on the stack */");
 			System.out.println("\taddl %edx, %esp");
@@ -269,6 +370,7 @@ class CodeFactory {
 			case Expression.LITERALEXPR: {
 				// not possible since you cannot read into a literal. An error
 				// should be generated
+				System.out.println("ERROR - Cannot read into a literal.");
 			}
 		}
 	}
@@ -284,11 +386,11 @@ class CodeFactory {
 		
 		System.out.println("\tmovl %esp, %ebp");
 		System.out.println("\t/* read first character to check for negative */");
-		System.out.println("\tmovl $3, %eax        /* The system call for read (sys_read) */");
-		System.out.println("\tmovl $0, %ebx        /* File descriptor 0 - standard input */");
-		System.out.println("\tlea 4(%ebp), %ecx      /* Put the address of character in a buffer */");
-		System.out.println("\tmovl $1, %edx        /* Place number of characters to read in edx */");
-		System.out.println("\tint $0x80	     /* Call to the Linux OS */ ");
+		System.out.println("\tmovl $3, %eax         /* The system call for read (sys_read) */");
+		System.out.println("\tmovl $0, %ebx         /* File descriptor 0 - standard input */");
+		System.out.println("\tlea 4(%ebp), %ecx     /* Put the address of character in a buffer */");
+		System.out.println("\tmovl $1, %edx         /* Place number of characters to read in edx */");
+		System.out.println("\tint $0x80	     		/* Call to the Linux OS */ ");
 		System.out.println("\tmovb 4(%ebp), %al");
 		System.out.println("\tcmpb $'\\n', %al      /* Is the newline character? */");
 		System.out.println("\tje  " + readEndLabel);
@@ -303,39 +405,39 @@ class CodeFactory {
 		System.out.println("\tcmpb $'+', %al");
 		System.out.println("\tje " + readLoopLabel);
 		System.out.println("\t/*Process the first digit that is not a minnus or newline.*/");
-		System.out.println("\tsubb $'0', 4(%ebp)      /* Convert '0'..'9' to 0..9 */ \n");
+		System.out.println("\tsubb $'0', 4(%ebp)     /* Convert '0'..'9' to 0..9 */ \n");
 
 		System.out.println("\t/* result  = (result * 10) + (idName  - '0') */");
 		System.out.println("\tmovl $10, %eax");
 		System.out.println("\txorl %edx, %edx");
-		System.out.println("\tmull " + idName + "        /* result  *= 10 */");
-		System.out.println("\txorl %ebx, %ebx    /* ebx = (int) idName */");
+		System.out.println("\tmull " + idName + "    /* result  *= 10 */");
+		System.out.println("\txorl %ebx, %ebx    	 /* ebx = (int) idName */");
 		System.out.println("\tmovb 4(%ebp), %bl");
-		System.out.println("\taddl %ebx, %eax    /* eax += idName */");
+		System.out.println("\taddl %ebx, %eax    	 /* eax += idName */");
 		System.out.println("\tmovl %eax, " + idName);
 		
 		
 		System.out.println(readLoopLabel + ":");
-		System.out.println("\tmovl $3, %eax        /* The system call for read (sys_read) */");
-		System.out.println("\tmovl $0, %ebx        /* File descriptor 0 - standard input */");
-		System.out.println("\tlea 4(%ebp), %ecx      /* Put the address of character in a buffer */");
-		System.out.println("\tmovl $1, %edx        /* Place number of characters to read in edx */");
-		System.out.println("\tint $0x80	     /* Call to the Linux OS */ \n");
+		System.out.println("\tmovl $3, %eax        	/* The system call for read (sys_read) */");
+		System.out.println("\tmovl $0, %ebx        	/* File descriptor 0 - standard input */");
+		System.out.println("\tlea 4(%ebp), %ecx    	/* Put the address of character in a buffer */");
+		System.out.println("\tmovl $1, %edx        	/* Place number of characters to read in edx */");
+		System.out.println("\tint $0x80	     		/* Call to the Linux OS */ \n");
 
 		System.out.println("\tmovb 4(%ebp), %al");
 		System.out.println("\tcmpb $'\\n', %al      /* Is the character '\\n'? */");
 
 		
 		System.out.println("\tje  " + readLoopEndLabel);
-		System.out.println("\tsubb $'0', 4(%ebp)      /* Convert '0'..'9' to 0..9 */ \n");
+		System.out.println("\tsubb $'0', 4(%ebp)    /* Convert '0'..'9' to 0..9 */ \n");
 
 		System.out.println("\t/* result  = (result * 10) + (idName  - '0') */");
 		System.out.println("\tmovl $10, %eax");
 		System.out.println("\txorl %edx, %edx");
-		System.out.println("\tmull " + idName + "        /* result  *= 10 */");
-		System.out.println("\txorl %ebx, %ebx    /* ebx = (int) idName */");
+		System.out.println("\tmull " + idName + "  	/* result  *= 10 */");
+		System.out.println("\txorl %ebx, %ebx    	/* ebx = (int) idName */");
 		System.out.println("\tmovb 4(%ebp), %bl");
-		System.out.println("\taddl %ebx, %eax    /* eax += idName */");
+		System.out.println("\taddl %ebx, %eax    	/* eax += idName */");
 		System.out.println("\tmovl %eax, " + idName);
 		System.out.println("\t/* Read the next character */");
 		System.out.println("\tjmp " + readLoopLabel);
@@ -392,7 +494,8 @@ class CodeFactory {
 			boolVariablesList.add(var);
 			assignedVariables.put(var, value);
 		} else {
-			// Error			
+			// Error
+			System.out.println("ERROR - Incorrect data type.");
 		}
 	}
 	
@@ -401,7 +504,7 @@ class CodeFactory {
 	}
 
 	void generateExit() {
-		System.out.println("exit:");
+		System.out.println("\nexit:");
 		System.out.println("\tmov $1, %eax");
 		System.out.println("\tmov $1, %ebx");
 		System.out.println("\tint $0x80");
@@ -418,7 +521,6 @@ class CodeFactory {
 			}
 		}
 			
-		//TODO: Distinguish between bool and int
 		for (String var : boolVariablesList) {						
 			if (assignedVariables.get(var) == null) {
 				System.out.println(var + ":\t.int 0");
@@ -428,8 +530,8 @@ class CodeFactory {
 		}
 			
 		System.out.println("");
-		System.out.println("__minus:  .byte '-'");
-		System.out.println("__negOne: .int -1");
+		System.out.println("__minus:   .byte '-'");
+		System.out.println("__negOne:  .int  -1");
 		System.out.println("__negFlag: .byte '+'");
 	}
 
@@ -439,9 +541,17 @@ class CodeFactory {
 		return tempVar;
 	}
 
-	private String createBoolTempName() {
+	private static String createBoolTempName() {
 		String tempVar = new String("temp" + tempCount++);
 		boolVariablesList.add(tempVar);
 		return tempVar;
+	}
+	
+	private static int createLoopCount() {
+		return loopCount++;
+	}
+	
+	public static int createIfCount() {
+		return ifCount++;
 	}
 }

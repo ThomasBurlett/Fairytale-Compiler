@@ -30,6 +30,19 @@ public class Token
     public final static int AND = 24;
     public final static int OR = 25;
     public final static int NOT = 26;
+    public final static int LOOP = 27;
+    public final static int DELOOP = 28;
+    public final static int IF = 29;
+    public final static int IFE = 30;
+    public final static int ENDIF = 31;
+    public final static int DOT = 32;
+    public final static int LT = 33;
+    public final static int LE = 34;
+    public final static int GT = 35;
+    public final static int GE = 36;
+    public final static int EE = 37;
+    public final static int NE = 38;
+    public final static int ELSE = 39;
 
     public Token( String tokenString, int tokenType)
     {
@@ -47,8 +60,12 @@ public class Token
             else if ( temp.compareTo("not") == 0) type = NOT;
             else if ( temp.compareTo("and") == 0) type = AND;
             else if ( temp.compareTo("or") == 0) type = OR;
-
-
+            else if ( temp.compareTo("loop") == 0) type = LOOP;
+            else if ( temp.compareTo("deloop") == 0) type = DELOOP;
+            else if ( temp.compareTo("if") == 0) type = IF;
+            else if ( temp.compareTo("ife") == 0) type = IFE;
+            else if ( temp.compareTo("endif") == 0) type = ENDIF;
+            else if ( temp.compareTo("else") == 0) type = ELSE;
         }
     }
     public String getId()
@@ -86,6 +103,19 @@ public class Token
             case INTDT : str = "INTDT"; break;
             case BOOLDT : str = "BOOLDT"; break;
             case ERR : str = "ERR"; break;
+            case LOOP : str = "LOOP"; break;
+            case DELOOP : str = "DELOOP"; break;
+            case IF : str = "IF"; break;
+            case IFE : str = "IFE"; break;
+            case ENDIF : str = "ENDIF"; break;
+            case ELSE : str = "ELSE"; break;
+            case DOT : str = "DOT"; break;
+            case LT : str = "LT"; break;
+            case LE : str = "LE"; break;
+            case GT : str = "GT"; break;
+            case GE : str = "GE"; break;
+            case EE : str = "EE"; break;
+            case NE : str = "NE"; break;
             default: str = "Lexical Error";
         }
         return str;

@@ -148,6 +148,49 @@ public class Scanner
             }
             tokenStr = currentLine.substring(currentLocation, i);
             tokenType = Token.INTLITERAL;
+            
+        } else if (currentLine.charAt(i) == '!'  && i+1 < len && currentLine.charAt(i+1) == '=')
+        {
+            tokenStr = "!=";
+            tokenType = Token.NE;
+            i+=2;
+            
+        }  else if (currentLine.charAt(i) == '=')
+        {
+            tokenStr = "=";
+            tokenType = Token.EE;
+            i++;
+            
+        } else if (currentLine.charAt(i) == '<'  && i+1 < len && currentLine.charAt(i+1) == '=')
+        {
+            tokenStr = "<=";
+            tokenType = Token.LE;
+            i+=2;
+            
+        }  else if (currentLine.charAt(i) == '<')
+        {
+            tokenStr = "<";
+            tokenType = Token.LT;
+            i++;
+            
+        } else if (currentLine.charAt(i) == '>'  && i+1 < len && currentLine.charAt(i+1) == '=')
+        {
+            tokenStr = ">=";
+            tokenType = Token.GE;
+            i+=2;
+            
+        } else if (currentLine.charAt(i) == '>')
+        {
+            tokenStr = ">";
+            tokenType = Token.GT;
+            i++;
+            
+        } else if (currentLine.charAt(i) == '.')
+        {
+            tokenStr = ".";
+            tokenType = Token.DOT;
+            i++;
+            
         } else // find identifiers and reserved words
         {
             while ( i < len && ! isReservedSymbol(currentLine.charAt(i)) )
@@ -182,7 +225,8 @@ public class Scanner
     boolean isReservedSymbol( char ch)
     {
         return( ch == ' ' || ch == '\n' || ch == '\t' || ch == ';' | ch == '+' ||
-                ch == '-' || ch == '(' || ch == ')' || ch == ','  || ch == ':' || ch == '~');
+                ch == '-' || ch == '(' || ch == ')' || ch == ','  || ch == ':' || 
+                ch == '~' || ch == '<' || ch == '>' || ch == '!' || ch == '=' );
     }
 
 }
