@@ -25,19 +25,19 @@ class CodeFactory {
 		assignedVariables = new HashMap<>();
 		    
 		// Uncomment for JUnit
-//		String testcase = Parser.filename;
-//		String outputFile = "AssemblyCode/" + testcase.substring(0, testcase.length() - 4) + ".s";		
-//		
-//		// Create Assembly File
-//		try {
-//	    	File file = new File(outputFile);
-//	    	FileOutputStream FOS = new FileOutputStream(file);
-//	    	PrintStream out = new PrintStream(FOS);
-//	    	System.setOut(out);
-//		} catch (FileNotFoundException e) {
-//			System.out.print("Error creating file.");
-//			// e.printStackTrace();
-//		}
+		String testcase = Parser.filename;
+		String outputFile = "AssemblyCode/" + testcase.substring(0, testcase.length() - 4) + ".s";		
+		
+		// Create Assembly File
+		try {
+	    	File file = new File(outputFile);
+	    	FileOutputStream FOS = new FileOutputStream(file);
+	    	PrintStream out = new PrintStream(FOS);
+	    	System.setOut(out);
+		} catch (FileNotFoundException e) {
+			System.out.print("Error creating file.");
+			// e.printStackTrace();
+		}
 	}
 	
 	void generateDeclaration( Expression variable ) {

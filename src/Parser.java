@@ -31,22 +31,22 @@ public class Parser
 
     }
 
-    static public void main (String args[]) {	// Uncomment for debugging
-//    static public void main (String test) { 	// Uncomment for JUnit
-//    	filename = test;
-//    	stdout = System.out;
-//        Parser parser = new Parser();
-//        scanner = new Scanner("testcases-2/" + test);
+    //static public void main (String args[]) {	// Uncomment for debugging
+    static public void main (String test) { 	// Uncomment for JUnit
+    	filename = test;
+    	stdout = System.out;
+        Parser parser = new Parser();
+        scanner = new Scanner("testcases-2/" + test);
 
-        Parser parser = new Parser();									// Uncomment for debugging
-        scanner = new Scanner("testcases/test.txt");
+//        Parser parser = new Parser();									// Uncomment for debugging
+//        scanner = new Scanner("testcases-3/test_for_05_error.txt");
         
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
         parser.parse();
         
-//        // Set output back to console	
-//        System.setOut(stdout);			// Uncomment for JUnit
+        // Set output back to console	
+        System.setOut(stdout);			// Uncomment for JUnit
     }
     
     public void parse()
