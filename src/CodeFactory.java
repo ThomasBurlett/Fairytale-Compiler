@@ -97,12 +97,17 @@ class CodeFactory {
 	Expression generateBoolExpr(Expression left, Expression right, Operation op) {
 		Expression tempExpr = new Expression(Expression.TEMPEXPR, createBoolTempName());
 
+		//if (left.expressionName)
 		System.out.println("\t/* Clear out EAX and EBX registers */");
 		System.out.println("\tXORL %eax, %eax");
 		System.out.println("\tXORL %ebx, %ebx");
 		
 		// Process left expression
-		System.out.println("\tMOVL " + left.expressionName + ", %eax");
+		if (left.expressionType == Expression.LITERALEXPR) {
+			System.out.println("\tMOVL $" + left.expressionIntValue + ", %eax");
+		} else {
+			System.out.println("\tMOVL " + left.expressionName + ", %eax");
+		}
 		
 		if (left.NOTflag) {
 			System.out.println("\t/* Negate and increment to enforce the NOT */");
@@ -111,7 +116,7 @@ class CodeFactory {
 		} 
 		
 		// Process right expression
-		System.out.println("\tMOVL " + right.expressionName + ", %ebx");
+		System.out.println("\tMOVL $" + right.expressionIntValue + ", %ebx");
 		
 		if (right.NOTflag) {
 			System.out.println("\t/* Negate and increment to enforce the NOT */");

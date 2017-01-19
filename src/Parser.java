@@ -25,13 +25,13 @@ public class Parser
 
     }
 
-    // static public void main (String args[])
+    //static public void main (String args[])
     static public void main (String test)
     {
     	filename = test;
     	stdout = System.out;
         Parser parser = new Parser();
-        //scanner = new Scanner("testcases-2/test_write_01.txt");
+        //scanner = new Scanner("testcases-2/test_bool_08_error.txt");
         scanner = new Scanner("testcases-2/" + test);
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
@@ -106,9 +106,11 @@ public class Parser
             {
             	match(Token.BOOLDT);
                 lValue = identifier();
+                // System.out.println(lValue.expressionIntValue + " " + lValue.expressionName + " " + lValue.expressionType + " " + lValue.expressionValueType);
+                
                 lValue.expressionValueType = Token.BOOL;
-                symbolTable.addItem( lValue.expressionName, Token.BOOLDT );
-
+                symbolTable.addItem( lValue.expressionName, Token.BOOL );
+                
                 switch ( currentToken.getType() )
                 {
 	                case Token.ASSIGNOP: {
@@ -130,7 +132,14 @@ public class Parser
                 if (currentToken.getType() == Token.BOOL) {
                 	expr = bool();
                     expr.expressionValueType = Token.BOOL;
+                    expr.expressionType = Expression.LITERALEXPR;
+                } else if (currentToken.getType() == Token.ID) {
+                	expr = identifier();
+                    //System.out.println(lValue.expressionIntValue + " " + lValue.expressionName + " " + lValue.expressionType + " " + lValue.expressionValueType);
+                    expr.expressionValueType = Token.ID;
                 } else {
+                	// Error - Incorrect assignment type
+                	System.out.println("ERROR - Incorrect assignment type.");
                 	expr = identifier();
                     expr.expressionValueType = Token.ID;
                 }
