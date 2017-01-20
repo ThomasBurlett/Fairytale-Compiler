@@ -16,10 +16,16 @@ class CodeFactory {
 	private static HashMap<String, Integer> assignedVariables;
 
 	private static int labelCount = 0;
-	public static boolean firstWrite = true;
+	public static boolean firstWrite;
 
 	public CodeFactory() {
 		tempCount = 0;
+		loopCount = 0;
+		ifCount = 0;
+		orCount = 0;
+		andCount = 0;
+		firstWrite = true;
+		
 		intVariablesList = new ArrayList<String>();
 		boolVariablesList = new ArrayList<String>();
 		assignedVariables = new HashMap<>();
@@ -105,11 +111,11 @@ class CodeFactory {
 		System.out.println("\tXORL %ebx, %ebx \n");
 		
 		// Process left expression
-		if (left.expressionType == Expression.LITERALEXPR) {
-			System.out.println("\tMOVL $" + left.expressionIntValue + ", %eax");
-		} else {
-			System.out.println("\tMOVL " + left.expressionName + ", %eax");
-		}
+//		if (left.expressionType == Expression.LITERALEXPR) {
+//			System.out.println("\tMOVL $" + left.expressionIntValue + ", %eax");
+//		} else {
+		System.out.println("\tMOVL " + left.expressionName + ", %eax");
+		//}
 		
 		if (left.NOTflag) {
 			System.out.println("\t/* Negate and increment to enforce the NOT */");
@@ -118,7 +124,7 @@ class CodeFactory {
 		} 
 		
 		// Process right expression
-		System.out.println("\tMOVL $" + right.expressionIntValue + ", %ebx");
+		System.out.println("\tMOVL " + right.expressionName + ", %ebx");
 		
 		if (right.NOTflag) {
 			System.out.println("\t/* Negate and increment to enforce the NOT */");
@@ -130,25 +136,16 @@ class CodeFactory {
 		if (op.opType == Token.AND) {
 			System.out.println("\t/* Generate AND expression */");
 			System.out.println("\tANDL %ebx, %eax");	
-			System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);
-			System.out.println("\tJMP OR_" + orCount);
+			System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName + "\n");
+			//System.out.println("\tJMP OR_" + orCount);
 		} else if (op.opType == Token.OR) {
 			System.out.println("\t/* Generate OR expression */");
 			System.out.println("\tORL %ebx, %eax");
-			System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName);			
+			System.out.println("\tMOVL " + "%eax, " + tempExpr.expressionName + "\n");			
 		}
-		
 
 		return tempExpr;
 	}
-	
-	/* LOOP */
-	static int printLoop() {
-		int count = createLoopCount();
-		System.out.println("LOOP_" + count + ":");
-		return count;
-	}
-	
 	
 	/* LOOP # */
 	static void printDeLoop(int count) {
@@ -158,16 +155,6 @@ class CodeFactory {
 		System.out.println("DELOOP_" + count + ":");		
 	}
 	
-	
-	/* LOOP ( <cond> )*/
-	public static void quitLoopCond(int count) {
-		System.out.println("\tJMP  LOOP_" + count + "\n");		
-
-		System.out.println("DELOOP_" + count + ":");
-		System.out.println("\tXORL %eax, %eax");
-	}
-	
-	
 	public static Expression comparisonStatement(Expression left, Operation op, Expression right) {
 		Expression tempExpr = new Expression(Expression.TEMPEXPR, createBoolTempName());
 		
@@ -176,6 +163,10 @@ class CodeFactory {
 		System.out.println("\tXORL %eax, %eax");
 		System.out.println("\tXORL %ebx, %ebx \n");
 
+		System.out.println("\t/* Set " + tempExpr.expressionName + " to be 0 */");
+		System.out.println("\tMOVL $0, %eax");
+		System.out.println("\tMOVL %eax, " + tempExpr.expressionName + "\n");
+		
 		System.out.println("\t/* Compare the variables */");
 
 		// Put left into EAX 
@@ -192,7 +183,7 @@ class CodeFactory {
 			System.out.println("\tMOVL " + right.expressionName + ", %ebx");
 		}
 		
-		System.out.println("\tCMP  %eax, %ebx");
+		System.out.println("\tCMP  %ebx, %eax");
 		System.out.println("\t" + op.jump + "  _" + tempExpr.expressionName);
 		
 		// If true, move 1 into tempExpr
@@ -205,17 +196,17 @@ class CodeFactory {
 		// Else, tempExpr will stay 0
 		System.out.println("_" + tempExpr.expressionName + ": ");
 		
-	 	System.out.println("\tJMP AND_" + andCount + "\n");
+	 	// System.out.println("\tJMP AND_" + andCount + "\n");
 		return tempExpr;
 	}
 	
 	
-	// Allows for code reuse with conditionals
-	static void loopExtension(Expression temp, int count) {
-		System.out.println("\tCMP  $1, %eax");
-		System.out.println("\tJNE  DELOOP_" + count + "\n");
-	}
-	
+//	// Allows for code reuse with conditionals
+//	static void loopExtension(Expression temp, int count) {
+//		System.out.println("\tCMP  $1, %eax");
+//		System.out.println("\tJNE  DELOOP_" + count + "\n");
+//	}
+//	
 	
 	static Expression generateBeginIntLoop(Expression expr, int count) {
 		String loopVar = "LpCt_" + Integer.toString(count);
@@ -249,6 +240,7 @@ class CodeFactory {
 		switch (expr.expressionType) {
 			case Expression.IDEXPR: {
 				generateAssemblyCodeForWriting(expr.expressionName);
+				break;
 			}
 			case Expression.TEMPEXPR: {
 				generateAssemblyCodeForWriting(expr.expressionName);
@@ -556,7 +548,7 @@ class CodeFactory {
 		return tempVar;
 	}
 	
-	private static int createLoopCount() {
+	public static int createLoopCount() {
 		return loopCount++;
 	}
 	

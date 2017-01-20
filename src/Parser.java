@@ -22,7 +22,6 @@ public class Parser
     private final String INCORRECTTYPE = "ERROR - Incorrect assignment type.";
     private final String INVALIDTOKEN = "ERROR - Invalid token.";
     
-    
     public static String filename; // = "test_write_01.txt";
     public static PrintStream stdout;
     
@@ -31,15 +30,15 @@ public class Parser
 
     }
 
-    //static public void main (String args[]) {	// Uncomment for debugging
+//    static public void main (String args[]) {	// Uncomment for debugging
     static public void main (String test) { 	// Uncomment for JUnit
     	filename = test;
     	stdout = System.out;
         Parser parser = new Parser();
-        scanner = new Scanner("testcases-2/" + test);
+        scanner = new Scanner("testcases-3/" + test);
 
 //        Parser parser = new Parser();									// Uncomment for debugging
-//        scanner = new Scanner("testcases-3/test_for_05_error.txt");
+//        scanner = new Scanner("testcases-3/test_while_06.txt");
         
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
@@ -213,29 +212,53 @@ public class Parser
             case Token.LOOP : {	
             	
             	match(Token.LOOP);
-            	int loopCount = CodeFactory.printLoop();
+            	int loopCount = CodeFactory.createLoopCount();
+        		System.out.println("LOOP_" + loopCount + ":");
             	
-            	switch (currentToken.getType()) { //TODO Not working
+            	switch (currentToken.getType()) {
 	            	case Token.LPAREN : {
 	            		// LOOP ( <conditional> ) . <statement list> DeLOOP #WhileLoop  
 	            		match(Token.LPAREN);
 
-	            		// Conditional
-	            		expr = conditional(); 		// 1 if true, 0 if false 		
-	            		match(Token.RPAREN);
+	            		expr = conditional(); 	// 1 if true, 0 if false 
 	            		
-	            		CodeFactory.loopExtension(expr, loopCount);
+	            		// Clear registers EAX, EBX
+	            	 	System.out.println("\t/* Clear out EAX and EBX registers */");
+	            	 	System.out.println("\tXORL %eax, %eax");
+	            	 	System.out.println("\tXORL %ebx, %ebx\n");
+	            	 	
+	            	 	// Compare temp EXPR register to boolean 
+	            	 	System.out.println("\t/* Compare " + expr.expressionName + " to 0 */");
+	            	 	System.out.println("\tMOVL " + expr.expressionName + ", %eax");
+	            	 	System.out.println("\tMOVL $0, %ebx");
+	            		System.out.println("\tCMP %eax, %ebx");
 	            		
+	            		// Go to DeLoop if the condition is false
+	            		System.out.println("\tJE DELOOP_" + loopCount + "\n");
+	            				
+	            		match(Token.RPAREN);	            		
 	            		match(Token.DOT);
+	            		
+	            		System.out.println("\t/* Clear out EAX, EBX, ECX, EDX registers */");
+	            	 	System.out.println("\tXORL %eax, %eax");
+	            	 	System.out.println("\tXORL %ebx, %ebx");
+	            	 	System.out.println("\tXORL %ecx, %ecx");
+	            	 	System.out.println("\tXORL %edx, %edx\n");
+	            	 	
+	            		System.out.println("\t/* Instructions within loop */");
 	            		statementList();
+	            	
+	            		// Loop back
+	            		System.out.println("\tJMP  LOOP_" + loopCount + "\n");
 	            		
 	            		// DeLoop
 	            		match(Token.DELOOP);
-	            		CodeFactory.quitLoopCond(loopCount);
-	            			            		
-	            		return;
+	            		System.out.println("\nDELOOP_" + loopCount + ":");
+	            		System.out.println("\tXORL %eax, %eax"); 
+	            		
+	            		return;	            		
 	            	}
-        			case Token.INTLITERAL : {	// Works
+        			case Token.INTLITERAL : {
 	            		// LOOP <intLiteral> . <statement list> DeLOOP #LoopNumTimes
 	            		expr = new Expression(Expression.LITERALEXPR, Integer.parseInt(currentToken.getId()));
 	            		expr.expressionValueType = Token.INTLITERAL;
@@ -249,7 +272,7 @@ public class Parser
 	            		CodeFactory.printDeLoop(loopCount);
 	            		return;
         			}
-        			case Token.ID : {	// Works
+        			case Token.ID : {
 	            		expr = new Expression(Expression.IDEXPR , currentToken.getId());
 	            		
 	            		if (CodeFactory.intVariablesList.contains(currentToken.getId())) {
@@ -287,49 +310,102 @@ public class Parser
         		}
             	break;
             }
-            case Token.IF : {	// WORKS
+            case Token.IF : {
             	// <statement> 	-> IF <conditional> . <statement list> ENDIF 
             	match(Token.IF);
             	int count = CodeFactory.createIfCount();
+            	
             	match(Token.LPAREN);
+            	
         		expr = conditional(); 	// 1 if true, 0 if false 
         		
+        		// Clear registers EAX, EBX
+        	 	System.out.println("\t/* Clear out EAX and EBX registers */");
         	 	System.out.println("\tXORL %eax, %eax");
-        	 	System.out.println("\tXORL %ebx, %ebx");
+        	 	System.out.println("\tXORL %ebx, %ebx\n");
+        	 	
+        	 	// Compare temp EXPR register to boolean 
+        	 	System.out.println("\t/* Compare " + expr.expressionName + " to 0 */");
         	 	System.out.println("\tMOVL " + expr.expressionName + ", %eax");
-        	 	System.out.println("\tMOVL $1, %ebx");
+        	 	System.out.println("\tMOVL $0, %ebx");
         		System.out.println("\tCMP %eax, %ebx");
-        		System.out.println("\tJNE ENDIF_" + count);
-                CodeFactory.orCount++;
+        		
+        		// Go to ENDIF if the condition is false
+        		System.out.println("\tJE ENDIF_" + count + "\n");
                 
+        		// CodeFactory.orCount++;
         		match(Token.RPAREN);
         		match(Token.DOT);
+        		
+        		System.out.println("\t/* Clear out EAX, EBX, ECX, EDX registers */");
+        	 	System.out.println("\tXORL %eax, %eax");
+        	 	System.out.println("\tXORL %ebx, %ebx");
+        	 	System.out.println("\tXORL %ecx, %ecx");
+        	 	System.out.println("\tXORL %edx, %edx\n");
+        	 	
+        		System.out.println("\t/* Instructions within if statement */");
         		statementList();
+        		
             	match(Token.ENDIF);
         		System.out.println("\nENDIF_" + count + ":");
+        		System.out.println("\tXORL %eax, %eax");
             	
         		return;
             }
             case Token.IFE : {
             	// <statement> 	-> IFe <conditional> . <statement list> ELSE <statement list> ENDIF
-//            	match(Token.IFE);
-//            	int count = CodeFactory.createIfCount();
-//            	
-//            	match(Token.LPAREN);
-//        		expr = conditional(); 	// 1 if true, 0 if false 
-//        		
-//        		match(Token.RPAREN);
-//        		match(Token.DOT);
-//        		
-//        		statementList();
-//        		
-//        		match(Token.ELSE); 
-//        		System.out.println("\tJMP ENDIF_" + count + "\n");
-//        		System.out.println("ELSE_" + count + ":");
-//        		statementList();
-//        		
-//        		System.out.println("\nENDIF_" + count + ":");
-//            	match(Token.ENDIF);
+            	
+            	match(Token.IFE);
+            	int count = CodeFactory.createIfCount();
+            	
+            	match(Token.LPAREN);
+        		expr = conditional(); 	// 1 if true, 0 if false 
+        		
+        		// Clear registers EAX, EBX
+        	 	System.out.println("\t/* Clear out EAX and EBX registers */");
+        	 	System.out.println("\tXORL %eax, %eax");
+        	 	System.out.println("\tXORL %ebx, %ebx\n");
+        	 	
+        	 	// Compare temp EXPR register to boolean 
+        	 	System.out.println("\t/* Compare " + expr.expressionName + " to 0 */");
+        	 	System.out.println("\tMOVL " + expr.expressionName + ", %eax");
+        	 	System.out.println("\tMOVL $0, %ebx");
+        		System.out.println("\tCMP %eax, %ebx");
+        		
+        		// Go to ELSE if the condition is false
+        		System.out.println("\tJE ELSE_" + count + "\n");
+                
+        		// CodeFactory.orCount++;
+        		match(Token.RPAREN);
+        		match(Token.DOT);
+        		
+        		System.out.println("\t/* Clear out EAX, EBX, ECX, EDX registers */");
+        	 	System.out.println("\tXORL %eax, %eax");
+        	 	System.out.println("\tXORL %ebx, %ebx");
+        	 	System.out.println("\tXORL %ecx, %ecx");
+        	 	System.out.println("\tXORL %edx, %edx\n");
+        	 	
+        		System.out.println("\t/* Instructions within if statement */");
+        		statementList();
+        		
+        		// Go to ENDIF
+        		System.out.println("\t/* Leave if-statement */");
+        		System.out.println("\tJMP ENDIF_" + count + "\n");
+        		
+            	match(Token.ELSE);
+        		System.out.println("\nELSE_" + count + ":");
+        		System.out.println("\t/* Clear out EAX, EBX, ECX, EDX registers */");
+        	 	System.out.println("\tXORL %eax, %eax");
+        	 	System.out.println("\tXORL %ebx, %ebx");
+        	 	System.out.println("\tXORL %ecx, %ecx");
+        	 	System.out.println("\tXORL %edx, %edx\n");
+        	 	
+        		System.out.println("\t/* Instructions within else statement */");
+        		statementList();
+        		
+            	match(Token.ENDIF);
+        		System.out.println("\nENDIF_" + count + ":");
+        		System.out.println("\tXORL %eax, %eax");
             	
         		return;
             }
@@ -382,13 +458,13 @@ public class Parser
             match(op.opType);
             
             rightOperand = conditional();
-    	 	System.out.println("OR_" + CodeFactory.orCount + ":");
+    	 	// System.out.println("OR_" + CodeFactory.orCount + ":");
             CodeFactory.orCount++;
             result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
         }
       
-	 	System.out.println("OR_" + CodeFactory.orCount + ":");
-        CodeFactory.orCount++;
+	 	// System.out.println("OR_" + CodeFactory.orCount + ":");
+        // CodeFactory.orCount++;
         return result;
     }
     
@@ -402,6 +478,7 @@ public class Parser
         Expression rightOperand;
         Operation op;
         
+        // Get name of boolean temp variable
         result = condStatement();
                 
         while ( currentToken.getType() == Token.AND ) {
@@ -413,13 +490,13 @@ public class Parser
             
             rightOperand = condFactor();
             
-            System.out.println("AND_" + CodeFactory.andCount + ":");
+            // System.out.println("AND_" + CodeFactory.andCount + ":");
             CodeFactory.andCount++;
             result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
         }
         
-        System.out.println("AND_" + CodeFactory.andCount + ":");
-        CodeFactory.andCount++;
+        // System.out.println("AND_" + CodeFactory.andCount + ":");
+        // CodeFactory.andCount++;
         return result;
     }    
     
@@ -437,7 +514,8 @@ public class Parser
 		match(Token.LPAREN);
 		
 		if (currentToken.getType() == Token.LPAREN) {
-			result = primary();
+			// Nested conditional
+			result = conditional();
 		} else {
 			leftOperand = expression();
 			match(Token.RPAREN);
@@ -450,6 +528,7 @@ public class Parser
 			
 			// bring together 
 			result = CodeFactory.comparisonStatement(leftOperand, op, rightOperand);
+			
 		}
 		
 		return result;
@@ -609,7 +688,7 @@ public class Parser
             op.opType = Token.OR;
             match(op.opType);
             
-            CodeFactory.printLoop();
+            // CodeFactory.printLoop();
             rightOperand = boolExpression();
             result = codeFactory.generateBoolExpr( leftOperand, rightOperand, op );
         }
@@ -714,7 +793,7 @@ public class Parser
                 match( Token.EE ); 
                 op = new Operation();
                 op.opType = Token.EE;                
-                op.jump = "JNE";
+                op.jump = "JNE";		// Jump on opposite
                 break;
             }
             case Token.NE:
@@ -722,7 +801,7 @@ public class Parser
                 match( Token.NE ); 
                 op = new Operation();
                 op.opType = Token.NE;
-                op.jump = "JE";
+                op.jump = "JE";			// Jump on opposite
                 break;
             }
             case Token.LT:
@@ -730,7 +809,7 @@ public class Parser
                 match( Token.LT ); 
                 op = new Operation();
                 op.opType = Token.LT;
-                op.jump = "JNL";
+                op.jump = "JGE";		// Jump on opposite
                 break;
             }
             case Token.LE:
@@ -738,7 +817,7 @@ public class Parser
                 match( Token.LE ); 
                 op = new Operation();
                 op.opType = Token.LE;
-                op.jump = "JG";
+                op.jump = "JG";			// Jump on opposite
                 break;
             }
             case Token.GE:
@@ -746,7 +825,7 @@ public class Parser
                 match( Token.GE ); 
                 op = new Operation();
                 op.opType = Token.GE;
-                op.jump = "JL";
+                op.jump = "JL";			// Jump on opposite
                 break;
             }
             case Token.GT:
@@ -754,7 +833,7 @@ public class Parser
                 match( Token.GT ); 
                 op = new Operation();
                 op.opType = Token.GT;
-                op.jump = "JNG";
+                op.jump = "JLE";		// Jump on opposite
                 break;
             }
             default: {

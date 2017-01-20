@@ -1,9 +1,9 @@
 OnceUponATime
 ~i x := 0;
 ~i y := 0;
-LOOP ( x < 5 ).
+LOOP ( (x) < (5) ) .
 x := x + 1;
-LOOP ( y < 3 ).
+LOOP ( (y) < (3) ) .
 y := y + 1;
 DeLOOP
 DeLOOP

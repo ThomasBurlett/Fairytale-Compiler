@@ -1,6 +1,6 @@
 OnceUponATime
 ~i x := 7;
-LOOP ( x = 5 ).
+LOOP ( (x) = (5) ) .
 x := x - 1;
 DeLOOP
 WRITE(x);
