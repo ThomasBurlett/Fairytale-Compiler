@@ -1,4 +1,5 @@
 import java.io.PrintStream;
+import java.text.ParseException;
 
 /* PROGRAM Micro */
 
@@ -31,11 +32,11 @@ public class Parser
     }
 
 //    static public void main (String args[]) {	// Uncomment for debugging
-    static public void main (String test) { 	// Uncomment for JUnit
+    static public void main (String test) throws ParseException { 	// Uncomment for JUnit
     	filename = test;
     	stdout = System.out;
         Parser parser = new Parser();
-        scanner = new Scanner("testcases-3/" + test);
+        scanner = new Scanner("testcase-p3/" + test);
 
 //        Parser parser = new Parser();									// Uncomment for debugging
 //        scanner = new Scanner("testcase-p3/test_FORLOOP_04E.txt");
@@ -48,19 +49,19 @@ public class Parser
         System.setOut(stdout);			// Uncomment for JUnit
     }
     
-    public void parse()
+    public void parse() throws ParseException
     {
         currentToken = scanner.findNextToken();
         systemGoal();
     }
     
-    private void systemGoal()
+    private void systemGoal() throws ParseException
     {
         program();
         codeFactory.generateData();
     }
     
-    private void program()
+    private void program() throws ParseException
     {
         match( Token.BEGIN );
         codeFactory.generateStart();
@@ -69,7 +70,7 @@ public class Parser
         codeFactory.generateExit();
     }
     
-    private void statementList()
+    private void statementList() throws ParseException
     {
         while ( currentToken.getType() == Token.ID || currentToken.getType() == Token.READ 
         		|| currentToken.getType() == Token.WRITE || currentToken.getType() == Token.INTDT
@@ -80,7 +81,7 @@ public class Parser
         }
     }
     
-    private void statement()
+    private void statement() throws ParseException
     {
         Expression lValue;
         Expression expr;
@@ -416,7 +417,7 @@ public class Parser
     }
     
     
-    private void idList()
+    private void idList() throws ParseException
     {
         Expression idExpr;
         idExpr = identifier();
@@ -429,7 +430,7 @@ public class Parser
         }
     }
     
-    private void expressionList()
+    private void expressionList() throws ParseException
     {
         Expression expr;
         expr = expression();
@@ -445,7 +446,7 @@ public class Parser
     
     // -> <condFactor> 
     // -> <condFactor> OR <conditional> 
-    private Expression conditional()
+    private Expression conditional() throws ParseException
     {
         Expression result;
         Expression leftOperand;
@@ -474,7 +475,7 @@ public class Parser
 	 * ->  <condStatement> 
 	 * ->  <condStatement> AND <condFactor>
      */
-    private Expression condFactor() {
+    private Expression condFactor() throws ParseException {
         Expression result;
         Expression leftOperand;
         Expression rightOperand;
@@ -506,7 +507,7 @@ public class Parser
      *  -> ( <conditional> ) 
      *  -> ( <expression> ) <comparison> ( <expression> ) 
      */
-    private Expression condStatement() {
+    private Expression condStatement() throws ParseException {
     	// ( <expression> ) <comparison> ( <expression> )
     	Expression result;	
         Expression leftOperand;
@@ -540,7 +541,7 @@ public class Parser
     
     
     
-    private Expression expression()
+    private Expression expression() throws ParseException
     {
         Expression result;
         Expression leftOperand;
@@ -560,7 +561,7 @@ public class Parser
         return result;
     }
     
-    private Expression factor() {
+    private Expression factor() throws ParseException {
         Expression result;
         Expression leftOperand;
         Expression rightOperand;
@@ -581,7 +582,7 @@ public class Parser
         return result;
     }
     
-    private Expression primary()
+    private Expression primary() throws ParseException
     {
         Expression result = new Expression();
         switch ( currentToken.getType() )
@@ -630,7 +631,7 @@ public class Parser
     }
 
     
-    private Operation anyOperation()
+    private Operation anyOperation() throws ParseException
     {
         Operation op = new Operation();
         switch ( currentToken.getType() )
@@ -676,7 +677,7 @@ public class Parser
     
     
     /* <boolExpr> -> <boolFactor> { OR <boolExpr> } */
-    private Expression boolExpression()
+    private Expression boolExpression() throws ParseException
     {
         Expression result;
         Expression leftOperand;
@@ -699,7 +700,7 @@ public class Parser
     }
     
     /* <boolFactor> -> <bool> { AND <boolFactor> } */
-    private Expression boolFactor() {
+    private Expression boolFactor() throws ParseException {
         Expression result;
         Expression leftOperand;
         Expression rightOperand;
@@ -727,7 +728,7 @@ public class Parser
      *  <bool> -> NOT <boolLiteral>
      *  <bool> -> ( <boolExpr> ) 
      */
-    private Expression bool() {
+    private Expression bool() throws ParseException {
         Expression result = new Expression();
         switch ( currentToken.getType() )
         {
@@ -786,7 +787,7 @@ public class Parser
     }
     
 
-    private Operation comparison() {
+    private Operation comparison() throws ParseException {
     	Operation op = new Operation();
         switch ( currentToken.getType() )
         {
@@ -850,7 +851,7 @@ public class Parser
     
     
     /* Modified for more detailed symbol table */
-    private Expression identifier()
+    private Expression identifier() throws ParseException
     {
         Expression expr;
         if (currentToken.getType() == Token.ID) {
@@ -869,7 +870,7 @@ public class Parser
     
     
     
-    private void match( int tokenType ) {
+    private void match( int tokenType ) throws ParseException {
         previousToken = currentToken;
 
         //System.out.println("Want: " + currentToken.getType());
@@ -915,7 +916,7 @@ public class Parser
         return expr;
     }
     
-    private Operation processOperation()
+    private Operation processOperation() throws ParseException
     {
         Operation op = new Operation();
         if ( previousToken.getType() == Token.PLUS ) op.opType = Token.PLUS;
@@ -986,20 +987,20 @@ public class Parser
     }
      
     
-    private void error( Token token )
+    private void error( Token token ) throws ParseException
     {
         System.out.println( "\tSyntax error! \n\tParsing for token type " + token.toString() + " at line number " + 
                 scanner.getLineNumber() + ". Instead found " + currentToken.toString() + "." );
         System.out.println("\tInvalid token. Force quit.");
-        System.exit(0);
+        throw new ParseException(token.toString(), 0);
     }
     
-    private void error( int tokenType )
+    private void error( int tokenType ) throws ParseException
     {
     	Token temp = new Token("temp", tokenType);
         System.out.println( "\tSyntax error! \n\tParsing for token type " + temp.toString() + " at line number " + 
                 scanner.getLineNumber() + ". Instead found " + currentToken.toString() + ".");
         System.out.println("\tInvalid token. Force quit.");
-        System.exit(0);
+        throw new ParseException(temp.toString(), 0);
     }
 }

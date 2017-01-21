@@ -1,6 +1,0 @@
-OnceUponATime
-~i x := 5;
-IF ( (x) != (3) ) .
-x := x * 4;
-ENDIF
-TheEnd
