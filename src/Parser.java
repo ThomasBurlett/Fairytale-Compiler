@@ -1,5 +1,7 @@
 import java.io.PrintStream;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 /* PROGRAM Micro */
 
@@ -18,6 +20,7 @@ public class Parser
     private Token previousToken;
     private static boolean signSet = false;
     private static String signFlag = "+";
+    private static ArrayList<String> methods;
     
     private final String UNDECLARED = "ERROR - Undeclared variable.";
     private final String INCORRECTTYPE = "ERROR - Incorrect assignment type.";
@@ -31,22 +34,24 @@ public class Parser
 
     }
 
-//    static public void main (String args[]) {	// Uncomment for debugging
-    static public void main (String test) throws ParseException { 	// Uncomment for JUnit
-    	filename = test;
-    	stdout = System.out;
-        Parser parser = new Parser();
-        scanner = new Scanner("testcase-p3/" + test);
+    static public void main (String args[]) throws ParseException {	// Uncomment for debugging
+//    static public void main (String test) throws ParseException { 	// Uncomment for JUnit
+//    	filename = test;
+//    	stdout = System.out;
+    	methods = new ArrayList<>();
+    	
+//        Parser parser = new Parser();
+//        scanner = new Scanner("testcase-p3/" + test);
 
-//        Parser parser = new Parser();									// Uncomment for debugging
-//        scanner = new Scanner("testcase-p3/test_FORLOOP_04E.txt");
+        Parser parser = new Parser();									// Uncomment for debugging
+        scanner = new Scanner("testcases-2/test.txt");
         
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
         parser.parse();
         
         // Set output back to console	
-        System.setOut(stdout);			// Uncomment for JUnit
+//        System.setOut(stdout);			// Uncomment for JUnit
     }
     
     public void parse() throws ParseException
@@ -75,7 +80,8 @@ public class Parser
         while ( currentToken.getType() == Token.ID || currentToken.getType() == Token.READ 
         		|| currentToken.getType() == Token.WRITE || currentToken.getType() == Token.INTDT
         		|| currentToken.getType() == Token.BOOLDT ||  currentToken.getType() == Token.LOOP
-        		|| currentToken.getType() == Token.IF || currentToken.getType() == Token.IFE )
+        		|| currentToken.getType() == Token.IF || currentToken.getType() == Token.IFE 
+        		|| currentToken.getType() == Token.DEF)
         {
             statement();
         }
@@ -91,25 +97,59 @@ public class Parser
             case Token.ID:
             {
                 lValue = identifier();
-                match( Token.ASSIGNOP );
                 
-                int dataType = currentToken.getType();
-                if (currentToken.getType() == Token.ID) {
-                	dataType = symbolTable.checkSTforType(currentToken);
-                }
-                
-                if ( dataType == Token.NOT || dataType == Token.BOOL || dataType == Token.BOOLDT ) {
-                	expr = boolExpression();  
-                	lValue.expressionValueType = Token.BOOL;
+                if (currentToken.getType() == Token.ASSIGNOP) {
+	                match( Token.ASSIGNOP );
+	                
+	                int dataType = currentToken.getType();
+	                if (currentToken.getType() == Token.ID) {
+	                	dataType = symbolTable.checkSTforType(currentToken);
+	                }
+	                
+	                if ( dataType == Token.NOT || dataType == Token.BOOL || dataType == Token.BOOLDT ) {
+	                	expr = boolExpression();  
+	                	lValue.expressionValueType = Token.BOOL;
+	                } else {
+	                    expr = expression();
+	                	lValue.expressionValueType = Token.INTLITERAL;
+	                }
+	
+	                codeFactory.generateAssignment( lValue, expr );
+	                match( Token.SEMICOLON );
+	                break;
+                } else if (currentToken.getType() == Token.CALL) {
+                	// Method call
+                	// Method name: lValue = Expression( Expression.IDEXPR, currentToken.getId());
+                	
+                	match(Token.CALL);
+                	//lValue.expressionValueType = Token.METHOD;
+                	symbolTable.addItem(lValue.expressionName, Token.ID);
+                	
+                	if (methods.contains(lValue.expressionName)) {
+                		System.out.println("\n\tCALL " + lValue.expressionName + "\n");
+                	} else {
+                		// ERROR
+                		System.out.println("ERROR - Method being called does not exist");
+                	}
+                	
+                	//match(Token.ID);
+                	
+                	return;
                 } else {
-                    expr = expression();
-                	lValue.expressionValueType = Token.INTLITERAL;
+                	// Error - Invalid 
                 }
-
-                codeFactory.generateAssignment( lValue, expr );
-                match( Token.SEMICOLON );
-                break;
             } 
+            case Token.DEF: {
+            	// Defining a method
+            	match(Token.DEF);
+            	String method = currentToken.getId(); // Get name
+            	match(Token.ID);
+            	
+            	createMethod(method);          	
+            	
+            	match(Token.DEFEND); 
+            	break;
+            }
             case Token.BOOLDT:
             {
             	match(Token.BOOLDT);
@@ -417,7 +457,27 @@ public class Parser
     }
     
     
-    private void idList() throws ParseException
+    private void createMethod(String method) throws ParseException {
+    	System.out.println("\tJMP Skip_" + method);
+    	System.out.println(method + ": ");
+    	System.out.println("\tPOPL %eip");
+    	System.out.println("\tPUSHL %eax");
+    	System.out.println("\tPUSHL %ebx");
+    	System.out.println("\tPUSHL %ecx");
+    	System.out.println("\tPUSHL %edx");
+
+    	statementList();
+
+    	System.out.println("\tPOPL %edx");
+    	System.out.println("\tPOPL %ecx");
+    	System.out.println("\tPOPL %ebx");
+    	System.out.println("\tPOPL %eax");
+    	System.out.println("\tRET\n");
+    	System.out.println("Skip_" + method + ":");
+
+	}
+
+	private void idList() throws ParseException
     {
         Expression idExpr;
         idExpr = identifier();
@@ -769,7 +829,6 @@ public class Parser
                 	result = new Expression( Expression.IDEXPR, currentToken.getId(), currentToken );
                 	result.expressionValueType = Token.BOOL;
                 	match(Token.ID);
-                	
                 }
                 
                 result.NOTflag = true;

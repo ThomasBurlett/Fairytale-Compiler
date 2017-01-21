@@ -155,7 +155,11 @@ public class Scanner
             tokenType = Token.NE;
             i+=2;
             
-        }  else if (currentLine.charAt(i) == '=')
+        } else if (currentLine.charAt(i) == '!') {
+        	tokenStr = "!";
+        	tokenType = Token.CALL;
+        	i++;
+        } else if (currentLine.charAt(i) == '=')
         {
             tokenStr = "=";
             tokenType = Token.EE;

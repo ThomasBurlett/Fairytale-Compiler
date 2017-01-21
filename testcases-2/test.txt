@@ -1,0 +1,7 @@
+ONCEUPONATIME
+DEF hello
+~i x := 2;
+WRITE(x);
+INED
+hello!
+THEEND

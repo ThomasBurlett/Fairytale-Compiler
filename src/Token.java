@@ -44,6 +44,10 @@ public class Token
     public final static int EE = 37;
     public final static int NE = 38;
     public final static int ELSE = 39;
+    public final static int DEF = 40;
+    public final static int METHOD = 41;
+    public final static int DEFEND = 42;
+    public final static int CALL = 43;
 
     public Token( String tokenString, int tokenType)
     {
@@ -69,6 +73,8 @@ public class Token
             else if ( temp.compareTo("else") == 0) type = ELSE;
             else if ( temp.compareTo("space") == 0) type = SPACE;
             else if ( temp.compareTo("enter") == 0) type = ENTER;
+            else if ( temp.compareTo("def") == 0) type = DEF;
+            else if ( temp.compareTo("ined") == 0) type = DEFEND;
         }
     }
     public String getId()
@@ -121,6 +127,10 @@ public class Token
             case NE : str = "NE"; break;
             case SPACE : str = "SPACE"; break;
             case ENTER : str = "ENTER"; break;
+            case DEF : str = "DEF"; break;
+            case DEFEND : str = "DEFENd"; break;
+            case METHOD : str = "METHOD"; break;
+            case CALL : str = "CALL"; break;
             default: str = "Lexical Error";
         }
         return str;

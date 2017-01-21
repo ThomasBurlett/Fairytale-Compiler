@@ -1,3 +1,10 @@
+Assembly Commands:
+as -g --32 test.s -o test.o
+ld -m elf_i386 test.o -o test
+./test
+
+
+
 Correct Output:
 
 
@@ -17,15 +24,15 @@ Output: 1
 
 4. For Loop, nested loops
 File: test_FORLOOP_03
-Output: 
+Output: 53
 
 5. For Loop, error case
 File: test_FORLOOP_04E
-Error: Syntax Error
+Error: Syntax Error parsing for DOT. Invalid token. Force quit. *no dot*
 
 6. For Loop, error case
 File: test_FORLOOP_05E
-Error: Syntax Error
+Errors: Invalid token. Syntax Error parsing for DOT. Force quit. *no number before dot*
 
 
 
@@ -33,11 +40,11 @@ IF STATEMENTS:
 
 7. If Statement, x > 2
 File: test_IF_00
-Output:
+Output: 10
 
 8. If Statement, x != 3
 File: test_IF_01
-Output:
+Output: 20
 
 9. If Statement, 5 = 5 AND 4 > 3
 File: test_IF_02
@@ -53,11 +60,11 @@ Output: 130
 
 12. If Statement, error case
 File: test_IF_05E
-Error: No ENDIF
+Error: Syntax Error when parsing ENDIF. Invalid token. Force quit.
 
 13. If Statement, error case
 File: test_IF_06E
-Output: conditionals must have parenthesis 
+Error: Syntax Error when parsing LPAREN. Invalid token. Force quit.
 
 
 
@@ -66,35 +73,47 @@ IF-ELSE STATEMENTS:
 
 14. If Else, x <= 5
 File: test_IFELSE_00
-Output:
+Output: 10
 
 15. If Else, nested
 File: test_IFELSE_01
-Output:
+Output: 4
+
+If Else, x!=5
+File: test_IFELSE_02
+Output: 0
+
+If Else, x < 5
+File: test_IFELSE_03
+Output: 13
+
+If Else, x > 5
+File: test_IFELSE_04
+Output: 100
 
 
-
+	
 WHILE LOOPS:
 
 16. While, x > 5
 File: test_WHILE_00
-Output:
+Output: 5
 
 17. While, x < 5
 File: test_WHILE_01
-Output:
+Output: 5
 
 18. While, x <= 5
 File: test_WHILE_02
-Output:
+Output: 6
 
 19. While, x >= 5
 File: test_WHILE_03
-Output:
+Output: 4
 
 20. While, x != 0
 File: test_WHILE_04
-Output:
+Output: 0
 
 21. While, x = 5 (no looping)
 File: test_WHILE_05
@@ -102,30 +121,16 @@ Output: 7
 
 22. While, nested
 File: test_WHILE_06
-Output: 
+Output: 53
 
 23. While, error case
 File: test_WHILE_07E
-Error: No DeLOOP
+Error: Syntax Error when parsing DELOOP. Invalid Token. Force Quit.
+
+
+Complicated Goodness:
 
 24. If Statement, complicated
 File: test_Complex_IF
 Output: 8008135
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
