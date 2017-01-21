@@ -10,323 +10,356 @@ import org.junit.Test;
 public class Phase3_Testing {
 
 	private static ArrayList<String> tests = new ArrayList<>();
-
-	/*
-	@Test
-	public void test_ex1() {
-		CodeFactory.firstWrite = true;
-		Parser.main("filename.txt");
-		tests.add("filename");
-
-		System.out.println("This will print to the console.");
-	}
-	*/
 	
 	/*
-	 * For Loops
+	 * 		For Loops
 	 */
 	
 	@Test
-	public void test_for_00() {
+	public void test_FORLOOP_00() {
 		System.out.println("This should pass.");
-		System.out.println("test_for_00.txt");
+		System.out.println("test_FORLOOP_00.txt");
 		System.out.println("");
 		
-		Parser.main("test_for_00.txt");
-		tests.add("test_for_00.txt");
+		Parser.main("test_FORLOOP_00.txt");
+		tests.add("test_FORLOOP_00.txt");
 		
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
 	@Test
-	public void test_for_01() {
+	public void test_FORLOOP_01() {
 		System.out.println("This should pass.");
-		System.out.println("test_for_01.txt");
+		System.out.println("test_FORLOOP_01.txt");
 		System.out.println("");
 		
-		Parser.main("test_for_01.txt");
-		tests.add("test_for_01.txt");
+		Parser.main("test_FORLOOP_01.txt");
+		tests.add("test_FORLOOP_01.txt");
 		
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
 	@Test
-	public void test_for_02() {
+	public void test_FORLOOP_02() {
 		System.out.println("This should pass.");
-		System.out.println("test_for_02.txt");
+		System.out.println("test_FORLOOP_02.txt");
 		System.out.println("");
 		
-		Parser.main("test_for_02.txt");
-		tests.add("test_for_02.txt");
+		Parser.main("test_FORLOOP_02.txt");
+		tests.add("test_FORLOOP_02.txt");
 		
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
 	@Test
-	public void test_for_03() {
+	public void test_FORLOOP_03() {
 		System.out.println("This should pass.");
-		System.out.println("test_for_03.txt");
+		System.out.println("test_FORLOOP_03.txt");
 		System.out.println("");
 		
-		Parser.main("test_for_03.txt");
-		tests.add("test_for_03.txt");
+		Parser.main("test_FORLOOP_03.txt");
+		tests.add("test_FORLOOP_03.txt");
 		
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 
 	
-	//For Loop Errors
+	//	For Loop Errors
+	
 	@Test
-	public void test_for_04_error() {
+	public void test_FORLOOP_04E() {
 		System.out.println("This should FAIL.");
-		System.out.println("test_for_04_error.txt");
+		System.out.println("test_FORLOOP_04E.txt");
 		System.out.println("");
 
-		try {
-			Parser.main("test_for_04_error.txt");
-			fail(); // FAIL when no exception is thrown
-		} catch (IndexOutOfBoundsException e) {
-			assert(true);
-			System.setOut(Parser.stdout);
-		}
+		Parser.main("test_FORLOOP_04E.txt");
+		System.setOut(Parser.stdout);
 				
-		// System.setOut(Parser.stdout);
 		System.out.println("\n\n\n-------------------------------------------");
 	}
+	
+	@Test
+	public void test_FORLOOP_05E() {
+		System.out.println("This should FAIL.");
+		System.out.println("test_FORLOOP_05E.txt");
+		System.out.println("");
+
+		Parser.main("test_FORLOOP_05E.txt");
+		System.setOut(Parser.stdout);
+				
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
 	
 	/*
 	 * If Statements
 	 */
 	
 	@Test
-	public void test_if_00() {
+	public void test_IF_00() {
 		System.out.println("This should pass.");
-		System.out.println("test_if_00.txt");
+		System.out.println("test_IF_00.txt");
 		System.out.println("");
 		
-		Parser.main("test_if_00.txt");
-		tests.add("test_if_00.txt");
+		Parser.main("test_IF_00.txt");
+		tests.add("test_IF_00.txt");
 		
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
 	
 	@Test
-	public void test_if_02() {
+	public void test_IF_01() {
 		System.out.println("This should pass.");
-		System.out.println("test_if_02.txt");
+		System.out.println("test_IF_01.txt");
 		System.out.println("");
 		
-		Parser.main("test_if_02.txt");
-		tests.add("test_if_02.txt");
+		Parser.main("test_IF_01.txt");
+		tests.add("test_IF_01.txt");
 		
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
 	@Test
-	public void test_if_03() {
+	public void test_IF_02() {
 		System.out.println("This should pass.");
-		System.out.println("test_if_03.txt");
+		System.out.println("test_IF_02.txt");
 		System.out.println("");
 		
-		Parser.main("test_if_03.txt");
-		tests.add("test_if_03.txt");
+		Parser.main("test_IF_02.txt");
+		tests.add("test_IF_02.txt");
 
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 		
 	@Test
-	public void test_if_04() {
+	public void test_IF_03() {
 		System.out.println("This should pass.");
-		System.out.println("test_if_04.txt");
+		System.out.println("test_IF_03.txt");
 		System.out.println("");
 		
-		Parser.main("test_if_04.txt");
-		tests.add("test_if_04.txt");
+		Parser.main("test_IF_03.txt");
+		tests.add("test_IF_03.txt");
 
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
 	@Test
-	public void test_if_05() {
+	public void test_IF_04() {
 		System.out.println("This should pass.");
-		System.out.println("test_if_05.txt");
+		System.out.println("test_IF_04.txt");
 		System.out.println("");
 		
-		Parser.main("test_if_05.txt");
-		tests.add("test_if_05.txt");
+		Parser.main("test_IF_04.txt");
+		tests.add("test_IF_04.txt");
 
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
-//	@Test
-//	public void test_if_06() {
-//		System.out.println("This should pass.");
-//		System.out.println("test_if_06.txt");
-//		System.out.println("");
-//		
-//		Parser.main("test_if_06.txt");
-//		
-//		System.out.println("\n\n\n-------------------------------------------");
-//	}
-//	
+	// IF Error Cases
 	
 	@Test
-	public void test_ifelse_00() {
+	public void test_IF_05E() {
+		System.out.println("This should pass.");
+		System.out.println("test_IF_05E.txt");
+		System.out.println("");
+		
+		Parser.main("test_IF_05E.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	@Test
+	public void test_IF_06E() {
+		System.out.println("This should pass.");
+		System.out.println("test_IF_06E.txt");
+		System.out.println("");
+		
+		Parser.main("test_IF_06E.txt");
+		
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	
+	// IF ELSE STATEMENTS
+	
+	@Test
+	public void test_IFELSE_00() {
 		System.out.println("This should pass.");
 		System.out.println("test_if_01.txt");
 		System.out.println("");
 		
-		Parser.main("test_ifelse_00.txt");
-		tests.add("test_ifelse_00.txt");
+		Parser.main("test_IFELSE_00.txt");
+		tests.add("test_IFELSE_00.txt");
 
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
 	@Test
-	public void test_ifelse_06() {
+	public void test_IFELSE_01() {
 		System.out.println("This should pass.");
-		System.out.println("test_if_01.txt");
+		System.out.println("test_IFELSE_01.txt");
 		System.out.println("");
 		
-		Parser.main("test_ifelse_06.txt");
-		tests.add("test_ifelse_06.txt");
+		Parser.main("test_IFELSE_01.txt");
+		tests.add("test_IFELSE_01.txt");
 
 		System.out.println("\n\n\n-------------------------------------------");
 	}
 	
-	//If Statement Errors
-		@Test
-		public void test_if_07_error() {
-			System.out.println("This should FAIL.");
-			System.out.println("test_if_07_error.txt");
-			System.out.println("");
-
-			try {
-			Parser.main("test_if_07_error.txt");
-			fail();
-			} catch(NullPointerException e) {
-				assert(true);
-				System.setOut(Parser.stdout);
-			}
-			
-			System.out.println("\n\n\n-------------------------------------------");
-		}
+	@Test
+	public void test_IFELSE_02() {
+		System.out.println("This should pass.");
+		System.out.println("test_IFELSE_02.txt");
+		System.out.println("");
 		
-		@Test
-		public void test_if_08_error() {
-			System.out.println("This should FAIL.");
-			System.out.println("test_if_08_error.txt");
-			System.out.println("");
+		Parser.main("test_IFELSE_02.txt");
+		tests.add("test_IFELSE_02.txt");
 
-			Parser.main("test_if_08_error.txt");
-			
-			System.out.println("\n\n\n-------------------------------------------");
-		}
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	@Test
+	public void test_IFELSE_03() {
+		System.out.println("This should pass.");
+		System.out.println("test_IFELSE_03.txt");
+		System.out.println("");
+		
+		Parser.main("test_IFELSE_03.txt");
+		tests.add("test_IFELSE_03.txt");
+
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	@Test
+	public void test_IFELSE_04() {
+		System.out.println("This should pass.");
+		System.out.println("test_IFELSE_04.txt");
+		System.out.println("");
+		
+		Parser.main("test_IFELSE_04.txt");
+		tests.add("test_IFELSE_04.txt");
+
+		System.out.println("\n\n\n-------------------------------------------");
+	}
+	
+	
 		
 		/*
 		 * While Loops
 		 */
 		
 		@Test
-		public void test_while_00() {
+		public void test_WHILE_00() {
 			System.out.println("This should pass.");
-			System.out.println("test_while_00.txt");
+			System.out.println("test_WHILE_00.txt");
 			System.out.println("");
 			
-			Parser.main("test_while_00.txt");
-			tests.add("test_while_00.txt");
+			Parser.main("test_WHILE_00.txt");
+			tests.add("test_WHILE_00.txt");
 
 			System.out.println("\n\n\n-------------------------------------------");
 		}
 		
 		@Test
-		public void test_while_01() {
+		public void test_WHILE_01() {
 			System.out.println("This should pass.");
-			System.out.println("test_while_01.txt");
+			System.out.println("test_WHILE_01.txt");
 			System.out.println("");
 			
-			Parser.main("test_while_01.txt");
-			tests.add("test_while_01.txt");
+			Parser.main("test_WHILE_01.txt");
+			tests.add("test_WHILE_01.txt");
 
 			System.out.println("\n\n\n-------------------------------------------");
 		}
 		
 		@Test
-		public void test_while_02() {
+		public void test_WHILE_02() {
 			System.out.println("This should pass.");
-			System.out.println("test_while_02.txt");
+			System.out.println("test_WHILE_02.txt");
 			System.out.println("");
 			
-			Parser.main("test_while_02.txt");
-			tests.add("test_while_02.txt");
+			Parser.main("test_WHILE_02.txt");
+			tests.add("test_WHILE_02.txt");
 
 			System.out.println("\n\n\n-------------------------------------------");
 		}
 		
 		@Test
-		public void test_while_03() {
+		public void test_WHILE_03() {
 			System.out.println("This should pass.");
-			System.out.println("test_while_03.txt");
+			System.out.println("test_WHILE_03.txt");
 			System.out.println("");
 			
-			Parser.main("test_while_03.txt");
-			tests.add("test_while_03.txt");
+			Parser.main("test_WHILE_03.txt");
+			tests.add("test_WHILE_03.txt");
 
 			System.out.println("\n\n\n-------------------------------------------");
 		}
 		
 		@Test
-		public void test_while_04() {
+		public void test_WHILE_04() {
 			System.out.println("This should pass.");
-			System.out.println("test_while_04.txt");
+			System.out.println("test_WHILE_04.txt");
 			System.out.println("");
 			
-			Parser.main("test_while_04.txt");
-			tests.add("test_while_04.txt");
+			Parser.main("test_WHILE_04.txt");
+			tests.add("test_WHILE_04.txt");
 
 			System.out.println("\n\n\n-------------------------------------------");
 		}
 		
 		@Test
-		public void test_while_05() {
+		public void test_WHILE_05() {
 			System.out.println("This should pass.");
-			System.out.println("test_while_05.txt");
+			System.out.println("test_WHILE_05.txt");
 			System.out.println("");
 			
-			Parser.main("test_while_05.txt");
-			tests.add("test_while_05.txt");
+			Parser.main("test_WHILE_05.txt");
+			tests.add("test_WHILE_05.txt");
 
 			System.out.println("\n\n\n-------------------------------------------");
 		}
 		
 		@Test
-		public void test_while_06() {
+		public void test_WHILE_06() {
 			System.out.println("This should pass.");
-			System.out.println("test_while_06.txt");
+			System.out.println("test_WHILE_06.txt");
 			System.out.println("");
 			
-			Parser.main("test_while_06.txt");
-			tests.add("test_while_06.txt");
+			Parser.main("test_WHILE_06.txt");
+			tests.add("test_WHILE_06.txt");
 
 			System.out.println("\n\n\n-------------------------------------------");
 		}
 		
-		//While Loop Errors
+		// While Loop Errors
+		
 		@Test
-		public void test_while_07_error() {
+		public void test_WHILE_07E() {
 			System.out.println("This should FAIL.");
-			System.out.println("test_while_07_error.txt");
+			System.out.println("test_WHILE_07E.txt");
 			System.out.println("");
 
-			try {
-				Parser.main("test_while_07_error.txt");
-			} catch (NullPointerException e) {
-				assert(true);
+		
+				Parser.main("test_WHILE_07E.txt");
 				System.setOut(Parser.stdout);
-			}
 			
 			System.out.println("\n\n\n-------------------------------------------");
 		}
 
+		
+		// Complicated Goodness
+		
+		@Test
+		public void test_Complex_IF() {
+			System.out.println("This should pass.");
+			System.out.println("test_Complex_IF.txt");
+			System.out.println("");
+		
+			Parser.main("test_Complex_IF.txt");
+			tests.add("test_Complex_IF.txt");
+
+			System.out.println("\n\n\n-------------------------------------------");
+		}
 }

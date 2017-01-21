@@ -30,22 +30,22 @@ public class Parser
 
     }
 
-    static public void main (String args[]) {	// Uncomment for debugging
-//    static public void main (String test) { 	// Uncomment for JUnit
-//    	filename = test;
-//    	stdout = System.out;
-//        Parser parser = new Parser();
-//        scanner = new Scanner("testcases-3/" + test);
+//    static public void main (String args[]) {	// Uncomment for debugging
+    static public void main (String test) { 	// Uncomment for JUnit
+    	filename = test;
+    	stdout = System.out;
+        Parser parser = new Parser();
+        scanner = new Scanner("testcases-3/" + test);
 
-        Parser parser = new Parser();									// Uncomment for debugging
-        scanner = new Scanner("testcase-p3/test_Complex_IF.txt");
+//        Parser parser = new Parser();									// Uncomment for debugging
+//        scanner = new Scanner("testcase-p3/test_FORLOOP_04E.txt");
         
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
         parser.parse();
         
-//        // Set output back to console	
-//        System.setOut(stdout);			// Uncomment for JUnit
+        // Set output back to console	
+        System.setOut(stdout);			// Uncomment for JUnit
     }
     
     public void parse()
@@ -882,7 +882,6 @@ public class Parser
         } else 
         {
             error( tokenType );
-            currentToken = scanner.findNextToken();
         }
     }
 
@@ -985,32 +984,22 @@ public class Parser
     	expr.expressionIntValue = intVal;
         return expr;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+     
     
     private void error( Token token )
     {
-        System.out.println( "Syntax error! Parsing token type " + token.toString() + " at line number " + 
-                scanner.getLineNumber() );
-        
-        //if (token.getType() == Token.ID )
-        //    System.out.println( "ID name: " + token.getId() );
+        System.out.println( "\tSyntax error! \n\tParsing for token type " + token.toString() + " at line number " + 
+                scanner.getLineNumber() + ". Instead found " + currentToken.toString() + "." );
+        System.out.println("\tInvalid token. Force quit.");
+        System.exit(0);
     }
     
     private void error( int tokenType )
     {
-        System.out.println( "Syntax error! Parsing token type " + tokenType + " at line number " + 
-                scanner.getLineNumber() );
+    	Token temp = new Token("temp", tokenType);
+        System.out.println( "\tSyntax error! \n\tParsing for token type " + temp.toString() + " at line number " + 
+                scanner.getLineNumber() + ". Instead found " + currentToken.toString() + ".");
+        System.out.println("\tInvalid token. Force quit.");
+        System.exit(0);
     }
 }
