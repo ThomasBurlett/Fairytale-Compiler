@@ -30,20 +30,20 @@ class CodeFactory {
 		boolVariablesList = new ArrayList<String>();
 		assignedVariables = new HashMap<>();
 		    
-		// Uncomment for JUnit
-		String testcase = Parser.filename;
-		String outputFile = "AssemblyCode/" + testcase.substring(0, testcase.length() - 4) + ".s";		
-		
-		// Create Assembly File
-		try {
-	    	File file = new File(outputFile);
-	    	FileOutputStream FOS = new FileOutputStream(file);
-	    	PrintStream out = new PrintStream(FOS);
-	    	System.setOut(out);
-		} catch (FileNotFoundException e) {
-			System.out.print("Error creating file.");
-			// e.printStackTrace();
-		}
+//		// Uncomment for JUnit
+//		String testcase = Parser.filename;
+//		String outputFile = "AssemblyCode/" + testcase.substring(0, testcase.length() - 4) + ".s";		
+//		
+//		// Create Assembly File
+//		try {
+//	    	File file = new File(outputFile);
+//	    	FileOutputStream FOS = new FileOutputStream(file);
+//	    	PrintStream out = new PrintStream(FOS);
+//	    	System.setOut(out);
+//		} catch (FileNotFoundException e) {
+//			System.out.print("Error creating file.");
+//			// e.printStackTrace();
+//		}
 	}
 	
 	void generateDeclaration( Expression variable ) {
@@ -200,14 +200,6 @@ class CodeFactory {
 		return tempExpr;
 	}
 	
-	
-//	// Allows for code reuse with conditionals
-//	static void loopExtension(Expression temp, int count) {
-//		System.out.println("\tCMP  $1, %eax");
-//		System.out.println("\tJNE  DELOOP_" + count + "\n");
-//	}
-//	
-	
 	static Expression generateBeginIntLoop(Expression expr, int count) {
 		String loopVar = "LpCt_" + Integer.toString(count);
 		Expression loopExpr = new Expression(Expression.TEMPEXPR, loopVar);
@@ -248,91 +240,92 @@ class CodeFactory {
 			}
 			case Expression.LITERALEXPR: {
 				generateAssemblyCodeForWriting("$" + expr.expressionName);
+				break;
 			}
 		}
 	}
 
 	private void generateAssemblyCodeForWriting(String idName) {
 		if (!firstWrite) {
-			System.out.println("\t/* Clear out registers */");
+			System.out.println("\n\t/* Clear out registers */");
 			System.out.println("\tXORL %eax, %eax");
 			System.out.println("\tXORL %ebx, %ebx");
 			System.out.println("\tXORL %ecx, %ecx");
 			System.out.println("\tXORL %edx, %edx");
 			System.out.println("");
 			
-			System.out.println("\tmovl " + idName + ",%eax");
-			System.out.println("\tpushl %eax");
-			System.out.println("\tcall __reversePrint    /* The return address is at top of stack! */");
-			System.out.println("\tpopl  %eax    		 /* Remove value pushed onto the stack */");
+			System.out.println("\tMOVL " + idName + ",%eax");
+			System.out.println("\tPUSHL %eax");
+			System.out.println("\tCALL __reversePrint	/* The return address is at top of stack! */");
+			System.out.println("\tPOPL  %eax			/* Remove value pushed onto the stack */");
 			
 		} else
 		{
 			firstWrite = false;
 			
-			System.out.println("\tmovl " + idName + ",%eax");
+			System.out.println("\tMOVL " + idName + ",%eax");
 			
 			String nonzeroPrintLabel = generateLabel("__nonzeroPrint");
-			System.out.println("\tcmpl $0, %eax");
-			System.out.println("\tjne " + nonzeroPrintLabel);
-			System.out.println("\tpush $'0'");
-			System.out.println("\tmovl $4, %eax       /* The system call for write (sys_write) */");
-			System.out.println("\tmovl $1, %ebx       /* File descriptor 1 - standard output */");
-			System.out.println("\tmovl $1, %edx       /* Place number of characters to display */");
-			System.out.println("\tleal (%esp), %ecx   /* Put effective address of zero into ecx */");
-			System.out.println("\tint $0x80	    	  /* Call to the Linux OS */");
-			System.out.println("popl %eax");
-			System.out.println("\tjmp __writeExit     /* Needed to jump over the reversePrint code since we printed the zero */ ");
+			System.out.println("\tCMPL $0, %eax");
+			System.out.println("\tJNE " + nonzeroPrintLabel);
+			System.out.println("\tPUSH $'0'");
+			System.out.println("\tMOVL $4, %eax			/* The system call for write (sys_write) */");
+			System.out.println("\tMOVL $1, %ebx			/* File descriptor 1 - standard output */");
+			System.out.println("\tMOVL $1, %edx			/* Place number of characters to display */");
+			System.out.println("\tLEAL (%esp), %ecx		/* Put effective address of zero into ecx */");
+			System.out.println("\tINT $0x80				/* Call to the Linux OS */");
+			System.out.println("\tPOPL %eax");
+			System.out.println("\tJMP __writeExit		/* Needed to jump over the reversePrint code since we printed the zero */ ");
 			System.out.println(nonzeroPrintLabel + ":");
-			System.out.println("\tpushl %eax");
-			System.out.println("\tcall __reversePrint  /* The return address is at top of stack! */");
-			System.out.println("\tpopl  %eax    	   /* Remove value pushed onto the stack */");
-			System.out.println("\tjmp __writeExit  	   /* Needed to jump over the reversePrint code since it was called */");
+			System.out.println("\tPUSHL %eax");
+			System.out.println("\tCALL __reversePrint	/* The return address is at top of stack! */");
+			System.out.println("\tPOPL  %eax			/* Remove value pushed onto the stack */");
+			System.out.println("\tJMP __writeExit		/* Needed to jump over the reversePrint code since it was called */");
 			
 			System.out.println("__reversePrint: ");
 			System.out.println("\t/* Save registers this method modifies */");
-			System.out.println("\tpushl %eax");
-			System.out.println("\tpushl %edx");
-			System.out.println("\tpushl %ecx");
-			System.out.println("\tpushl %ebx");
+			System.out.println("\tPUSHL %eax");
+			System.out.println("\tPUSHL %edx");
+			System.out.println("\tPUSHL %ecx");
+			System.out.println("\tPUSHL %ebx");
 
-			System.out.println("\tcmpw $0, 20(%esp)");
-			System.out.println("\tjge __positive");
+			System.out.println("\tCMPW $0, 20(%esp)");
+			System.out.println("\tJGE __positive");
 			System.out.println("\t/* Display minus on console */");
-			System.out.println("\tmovl $4, %eax        	/* The system call for write (sys_write) */");
-			System.out.println("\tmovl $1, %ebx       	/* File descriptor 1 - standard output */");
-			System.out.println("\tmovl $1, %edx     	/* Place number of characters to display */");
-			System.out.println("\tmovl $__minus, %ecx	/* Put effective address of stack into ecx */");
-			System.out.println("\tint $0x80				/* Call to the Linux OS */");
+			System.out.println("\tMOVL $4, %eax			/* The system call for write (sys_write) */");
+			System.out.println("\tMOVL $1, %ebx			/* File descriptor 1 - standard output */");
+			System.out.println("\tMOVL $1, %edx			/* Place number of characters to display */");
+			System.out.println("\tMOVL $__minus, %ecx	/* Put effective address of stack into ecx */");
+			System.out.println("\tINT $0x80				/* Call to the Linux OS */");
 			
-			System.out.println("\t__positive:");
-			System.out.println("\txorl %eax, %eax       /* eax = 0 */");
-			System.out.println("\txorl %ecx, %ecx       /* ecx = 0, to track characters printed */");
+			System.out.println("__positive:");
+			System.out.println("\tXORL %eax, %eax       /* eax = 0 */");
+			System.out.println("\tXORL %ecx, %ecx       /* ecx = 0, to track characters printed */");
 
 			System.out.println("\t/** Skip 16-bytes of register data stored on stack and 4 bytes");
-			System.out.println("\tof return address to get to first parameter on stack ");
-			System.out.println("\t*/   ");
-			System.out.println("\tmovw 20(%esp), %ax     /* ax = parameter on stack */");
+			System.out.println("\t *  of return address to get to first parameter on stack ");
+			System.out.println("\t */   ");
+			System.out.println("\tMOVW 20(%esp), %ax     /* ax = parameter on stack */");
 
-			System.out.println("\tcmpw $0, %ax");
-			System.out.println("\tjge __reverseLoop");
-			System.out.println("\tmulw __negOne\n");
+			System.out.println("\tCMPW $0, %ax");
+			System.out.println("\tJGE  __reverseLoop");
+			System.out.println("\tMULW __negOne\n");
 			
 			System.out.println("__reverseLoop:");
 
-			System.out.println("\tcmpw $0, %ax");
-			System.out.println("\tje   __reverseExit");
+			System.out.println("\tCMPW $0, %ax");
+			System.out.println("\tJE   __reverseExit");
 			System.out.println("\t/* Do div and mod operations */");
-			System.out.println("\tmovl $10, %ebx         /* ebx = 10 as divisor  */");
-			System.out.println("\txorl %edx, %edx        /* edx = 0 to get remainder */");
-			System.out.println("\tidivl %ebx             /* edx = eax % 10, eax /= 10 */");
-			System.out.println("\taddb $'0', %dl         /* convert 0..9 to '0'..'9'  */");
+			System.out.println("\tMOVL $10, %ebx		/* ebx = 10 as divisor  */");
+			System.out.println("\tXORL %edx, %edx		/* edx = 0 to get remainder */");
+			System.out.println("\tIDIVL %ebx			/* edx = eax % 10, eax /= 10 */");
+			System.out.println("\tADDB $'0', %dl		/* convert 0..9 to '0'..'9'  */");
 
-			System.out.println("\tdecl %esp              /* use stack to store digit  */");
-			System.out.println("\tmovb %dl, (%esp)       /* Save character on stack.  */");
-			System.out.println("\tincl %ecx              /* track number of digits.   */");
+			System.out.println("\tDECL %esp				/* use stack to store digit  */");
+			System.out.println("\tMOVB %dl, (%esp)		/* Save character on stack.  */");
+			System.out.println("\tINCL %ecx 			/* track number of digits.   */");
 
-			System.out.println("\tjmp __reverseLoop");
+			System.out.println("\tJMP __reverseLoop \n");
 
 			System.out.println("__reverseExit:");
 
@@ -340,20 +333,20 @@ class CodeFactory {
 
 			System.out.println("\t/* Display characters on _stack_ on console */");
 
-			System.out.println("\tmovl $4, %eax      	/* The system call for write (sys_write) */");
-			System.out.println("\tmovl $1, %ebx       	/* File descriptor 1 - standard output */");
-			System.out.println("\tmovl %ecx, %edx     	/* Place number of characters to display */");
-			System.out.println("\tleal (%esp), %ecx   	/* Put effective address of stack into ecx */");
-			System.out.println("\tint $0x80	    		/* Call to the Linux OS */");
+			System.out.println("\tMOVL $4, %eax			/* The system call for write (sys_write) */");
+			System.out.println("\tMOVL $1, %ebx			/* File descriptor 1 - standard output */");
+			System.out.println("\tMOVL %ecx, %edx		/* Place number of characters to display */");
+			System.out.println("\tLEAL (%esp), %ecx		/* Put effective address of stack into ecx */");
+			System.out.println("\tINT $0x80				/* Call to the Linux OS */");
 
-			System.out.println("\t /* Clean up data and registers on the stack */");
-			System.out.println("\taddl %edx, %esp");
-			System.out.println("\tpopl %ebx");
-			System.out.println("\tpopl %ecx");
-			System.out.println("\tpopl %edx");
-			System.out.println("\tpopl %eax");
+			System.out.println("\t/* Clean up data and registers on the stack */");
+			System.out.println("\tADDL %edx, %esp");
+			System.out.println("\tPOPL %ebx");
+			System.out.println("\tPOPL %ecx");
+			System.out.println("\tPOPL %edx");
+			System.out.println("\tPOPL %eax");
 
-			System.out.println("\tret");
+			System.out.println("\tRET \n");
 			System.out.println("__writeExit:");
 		}
 	}

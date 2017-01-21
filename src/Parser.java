@@ -30,22 +30,22 @@ public class Parser
 
     }
 
-//    static public void main (String args[]) {	// Uncomment for debugging
-    static public void main (String test) { 	// Uncomment for JUnit
-    	filename = test;
-    	stdout = System.out;
-        Parser parser = new Parser();
-        scanner = new Scanner("testcases-3/" + test);
+    static public void main (String args[]) {	// Uncomment for debugging
+//    static public void main (String test) { 	// Uncomment for JUnit
+//    	filename = test;
+//    	stdout = System.out;
+//        Parser parser = new Parser();
+//        scanner = new Scanner("testcases-3/" + test);
 
-//        Parser parser = new Parser();									// Uncomment for debugging
-//        scanner = new Scanner("testcases-3/test_while_06.txt");
+        Parser parser = new Parser();									// Uncomment for debugging
+        scanner = new Scanner("testcase-p3/test_Complex_IF.txt");
         
         codeFactory = new CodeFactory();
         symbolTable = new SymbolTable();
         parser.parse();
         
-        // Set output back to console	
-        System.setOut(stdout);			// Uncomment for JUnit
+//        // Set output back to console	
+//        System.setOut(stdout);			// Uncomment for JUnit
     }
     
     public void parse()
@@ -204,7 +204,9 @@ public class Parser
             {
                 match( Token.WRITE );
                 match( Token.LPAREN );
+                
                 expressionList();
+                
                 match( Token.RPAREN );
                 match( Token.SEMICOLON );
                 break;

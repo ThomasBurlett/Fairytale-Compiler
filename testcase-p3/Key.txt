@@ -1,0 +1,131 @@
+Correct Output:
+
+
+FOR LOOPS:
+
+1. For Loop, multiple loops
+File: test_FORLOOP_00
+Output: 12345
+
+2. For Loop, zero loops
+File: test_FORLOOP_01
+Output: 0
+
+3. For Loop, one loop
+File: test_FORLOOP_02
+Output: 1
+
+4. For Loop, nested loops
+File: test_FORLOOP_03
+Output: 
+
+5. For Loop, error case
+File: test_FORLOOP_04E
+Error: Syntax Error
+
+6. For Loop, error case
+File: test_FORLOOP_05E
+Error: Syntax Error
+
+
+
+IF STATEMENTS:
+
+7. If Statement, x > 2
+File: test_IF_00
+Output:
+
+8. If Statement, x != 3
+File: test_IF_01
+Output:
+
+9. If Statement, 5 = 5 AND 4 > 3
+File: test_IF_02
+Output: 10
+
+10. If Statement, 8 > 1 OR 4 != 4
+File: test_IF_03
+Output: 2020
+
+11. If Statement, 5 < 1 AND 3 >= 1 OR 4 = 4
+File: test_IF_04
+Output: 130
+
+12. If Statement, error case
+File: test_IF_05E
+Error: No ENDIF
+
+13. If Statement, error case
+File: test_IF_06E
+Output: conditionals must have parenthesis 
+
+
+
+IF-ELSE STATEMENTS:
+
+
+14. If Else, x <= 5
+File: test_IFELSE_00
+Output:
+
+15. If Else, nested
+File: test_IFELSE_01
+Output:
+
+
+
+WHILE LOOPS:
+
+16. While, x > 5
+File: test_WHILE_00
+Output:
+
+17. While, x < 5
+File: test_WHILE_01
+Output:
+
+18. While, x <= 5
+File: test_WHILE_02
+Output:
+
+19. While, x >= 5
+File: test_WHILE_03
+Output:
+
+20. While, x != 0
+File: test_WHILE_04
+Output:
+
+21. While, x = 5 (no looping)
+File: test_WHILE_05
+Output: 7
+
+22. While, nested
+File: test_WHILE_06
+Output: 
+
+23. While, error case
+File: test_WHILE_07E
+Error: No DeLOOP
+
+24. If Statement, complicated
+File: test_Complex_IF
+Output: 8008135
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

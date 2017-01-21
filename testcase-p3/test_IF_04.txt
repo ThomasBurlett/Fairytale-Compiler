@@ -1,0 +1,6 @@
+OnceUponATime
+IF ( (5) < (1) AND (3) >= (1) OR (4) = (4) ) .
+WRITE(1);
+ENDIF
+WRITE(30);
+TheEnd

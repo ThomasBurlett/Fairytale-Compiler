@@ -1,0 +1,17 @@
+OnceUponATime
+~i x := 135;
+~i y := 135;
+~i z := 135;
+IF ( (5+2*10) = (25) ) .
+x := 800;
+ENDIF
+IF ( (5+2*10) = (25) OR (5+2*10) != (25) ) .
+y := 8;
+ENDIF
+IF ( (5+2*10) = (25) AND (5+2*10) != (25) ) .
+z := 5;
+ENDIF
+WRITE(x);
+WRITE(y);
+WRITE(z);
+TheEnd

@@ -1,0 +1,7 @@
+OnceUponATime
+~i x := 0;
+LOOP 5 .
+x := x + 1;
+WRITE(x);
+DeLOOP
+TheEnd

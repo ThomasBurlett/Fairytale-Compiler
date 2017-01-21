@@ -19,7 +19,8 @@ public class Token
     public final static int MINUS = 12;
     public final static int INTLITERAL = 13;
     public final static int EOF = 14;
-    
+    public final static int SPACE = 15;
+    public final static int ENTER = 16;
     public final static int MULT = 17;
     public final static int DIV = 18;
     public final static int MOD = 19;
@@ -66,6 +67,8 @@ public class Token
             else if ( temp.compareTo("ife") == 0) type = IFE;
             else if ( temp.compareTo("endif") == 0) type = ENDIF;
             else if ( temp.compareTo("else") == 0) type = ELSE;
+            else if ( temp.compareTo("space") == 0) type = SPACE;
+            else if ( temp.compareTo("enter") == 0) type = ENTER;
         }
     }
     public String getId()
@@ -116,6 +119,8 @@ public class Token
             case GE : str = "GE"; break;
             case EE : str = "EE"; break;
             case NE : str = "NE"; break;
+            case SPACE : str = "SPACE"; break;
+            case ENTER : str = "ENTER"; break;
             default: str = "Lexical Error";
         }
         return str;

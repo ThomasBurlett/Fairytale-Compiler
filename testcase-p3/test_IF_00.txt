@@ -1,0 +1,7 @@
+OnceUponATime
+~i x := 5;
+IF ( (x) > (2) ) .
+x := x + 5;
+ENDIF
+WRITE(x);
+TheEnd
